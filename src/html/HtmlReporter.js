@@ -1,4 +1,4 @@
-jasmine.HtmlReporter = function(_doc) {
+jasmine.HtmlReporter = function(_doc, container_id) {
   var self = this;
   var doc = _doc || window.document;
 
@@ -11,13 +11,29 @@ jasmine.HtmlReporter = function(_doc) {
 
   self.reportRunnerStarting = function(runner) {
     var specs = runner.specs() || [];
+    var root;
 
     if (specs.length == 0) {
       return;
     }
 
     createReporterDom(runner.env.versionString());
-    doc.body.appendChild(dom.reporter);
+    if (container_id) {
+      try {
+        root = doc.getElementById(container_id);
+        if (!root.parentNode) {
+          root = doc.body;
+        } else {
+          // clean the node before we attach the Jasmine test report:
+          root.innerHTML = "";
+        }
+      } catch (e) {
+        root = doc.body;
+      }
+    } else {
+      root = doc.body;
+    }
+    root.appendChild(dom.reporter);
     setExceptionHandling();
 
     reporterView = new jasmine.HtmlReporter.ReporterView(dom);
