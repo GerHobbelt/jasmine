@@ -3,5 +3,5 @@ jasmine.version_= {
   "major": 1,
   "minor": 3,
   "build": 1,
-  "revision": 1360285720
+  "revision": 1360338242
 };
