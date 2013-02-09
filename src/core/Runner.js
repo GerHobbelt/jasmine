@@ -13,13 +13,16 @@ jasmine.Runner = function(env) {
   self.suites_ = [];
 };
 
-jasmine.Runner.prototype.execute = function() {
+jasmine.Runner.prototype.execute = function(onComplete) {
   var self = this;
   if (self.env.reporter.reportRunnerStarting) {
     self.env.reporter.reportRunnerStarting(this);
   }
   self.queue.start(function () {
     self.finishCallback();
+    if (typeof onComplete === "function") {
+      onComplete();
+    }
   });
 };
 

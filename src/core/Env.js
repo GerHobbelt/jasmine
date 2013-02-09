@@ -86,8 +86,8 @@ jasmine.Env.prototype.addReporter = function(reporter) {
   this.reporter.addReporter(reporter);
 };
 
-jasmine.Env.prototype.execute = function() {
-  this.currentRunner_.execute();
+jasmine.Env.prototype.execute = function(onComplete) {
+  this.currentRunner_.execute(onComplete);
 };
 
 jasmine.Env.prototype.describe = function(description, specDefinitions) {
