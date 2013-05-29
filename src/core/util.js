@@ -1,19 +1,6 @@
-/**
- * @namespace
- */
 jasmine.util = {};
 
-/**
- * Declare that a child class inherit it's prototype from the parent class.
- *
- * @private
- * @param {Function} childClass
- * @param {Function} parentClass
- */
 jasmine.util.inherit = function(childClass, parentClass) {
-  /**
-   * @private
-   */
   var subclass = function() {
   };
   subclass.prototype = parentClass.prototype;
@@ -60,8 +47,6 @@ jasmine.util.argsToArray = function(args) {
   return arrayOfArgs;
 };
 
-jasmine.util.extend = function(destination, source) {
-  for (var property in source) destination[property] = source[property];
-  return destination;
+jasmine.util.isUndefined = function(obj) {
+  return obj === void 0;
 };
-
