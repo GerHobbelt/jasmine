@@ -2,14 +2,16 @@
 <html>
 <head>
   <meta http-equiv="content-type" content="text/html;charset=utf-8"/>
-  <title>introduction.js</title>
+  <title>introduction-1.3.1.js</title>
   <link href='http://fonts.googleapis.com/css?family=Lora|Istok+Web:700' rel='stylesheet' type='text/css'/>
-  <link rel="stylesheet" href="http://jashkenas.github.com/docco/resources/docco.css"/>
-  <link rel="stylesheet" href="css/jasmine_docco.css"/>
-  <link rel="stylesheet" href="lib/jasmine.css"/>
-  <script src="lib/jasmine.js"></script>
-  <script src="lib/jasmine-html.js"></script>
-  <script src="src/introduction.js"></script>
+  <link rel="stylesheet" href="css/docco.css"/>
+  <link rel="stylesheet" href="css/jasmine_docco-1.3.1.css"/>
+  <link rel="stylesheet" href="lib/jasmine-1.3.1/jasmine.css"/>
+  <script src="lib/jasmine-1.3.1/jasmine.js"></script>
+  <script src="lib/jasmine-1.3.1/jasmine-html.js"></script>
+  <!--- boot.js is required only for Jasmine 2.x --->
+  <script src="lib/jasmine-1.3.1/boot.js"></script>
+  <script src="src/introduction-1.3.1.js"></script>
 </head>
 <body>
 <div id="container">
@@ -30,7 +32,7 @@
     <thead>
     <tr>
       <th class="docs">
-        <h1>introduction.js</h1>
+        <h1>introduction-1.3.1.js</h1>
       </th>
       <th class="code"></th>
     </tr>
@@ -289,7 +291,7 @@
         </div>
         <h2>Grouping Related Specs with <code>describe</code></h2>
 
-<p>The <code>describe</code> function is for grouping related specs. The string parameter is for naming the collection of specs, and will be contatenated with specs to make a spec&rsquo;s full name. This aids in finding specs in a large suite. If you name them well, your specs read as full sentences in traditional <a href="http://en.wikipedia.org/wiki/Behavior-driven_development">BDD</a> style.</p>
+<p>The <code>describe</code> function is for grouping related specs. The string parameter is for naming the collection of specs, and will be concatenated with specs to make a spec&rsquo;s full name. This aids in finding specs in a large suite. If you name them well, your specs read as full sentences in traditional <a href="http://en.wikipedia.org/wiki/Behavior-driven_development">BDD</a> style.</p>
       </td>
       <td class="code">
         <div class="highlight">
@@ -637,7 +639,7 @@
   <span class="p">});</span>
 
   <span class="nx">it</span><span class="p">(</span><span class="s2">&quot;is named, which helps in error reporting&quot;</span><span class="p">,</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
-    <span class="nx">expect</span><span class="p">(</span><span class="nx">whatAmI</span><span class="p">.</span><span class="nx">identity</span><span class="p">).</span><span class="nx">toEqual</span><span class="p">(</span><span class="s1">&#39;whatAmI&#39;</span><span class="p">)</span>
+    <span class="nx">expect</span><span class="p">(</span><span class="nx">whatAmI</span><span class="p">.</span><span class="nx">identity</span><span class="p">).</span><span class="nx">toEqual</span><span class="p">(</span><span class="s1">&#39;whatAmI&#39;</span><span class="p">);</span>
   <span class="p">});</span>
 
   <span class="nx">it</span><span class="p">(</span><span class="s2">&quot;tracks that the spy was called&quot;</span><span class="p">,</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
@@ -723,7 +725,7 @@
     <span class="nx">it</span><span class="p">(</span><span class="s2">&quot;is useful for comparing arguments&quot;</span><span class="p">,</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
       <span class="kd">var</span> <span class="nx">foo</span> <span class="o">=</span> <span class="nx">jasmine</span><span class="p">.</span><span class="nx">createSpy</span><span class="p">(</span><span class="s1">&#39;foo&#39;</span><span class="p">);</span>
       <span class="nx">foo</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
-        <span class="k">return</span> <span class="kc">true</span>
+        <span class="k">return</span> <span class="kc">true</span><span class="p">;</span>
       <span class="p">});</span>
 
       <span class="nx">expect</span><span class="p">(</span><span class="nx">foo</span><span class="p">).</span><span class="nx">toHaveBeenCalledWith</span><span class="p">(</span><span class="nx">jasmine</span><span class="p">.</span><span class="nx">any</span><span class="p">(</span><span class="nb">Number</span><span class="p">),</span> <span class="nx">jasmine</span><span class="p">.</span><span class="nx">any</span><span class="p">(</span><span class="nb">Function</span><span class="p">));</span>
