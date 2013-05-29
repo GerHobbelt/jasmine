@@ -1,18 +1,17 @@
-(function() {
-  jasmine.Env = function(options) {
+getJasmineRequireObj().Env = function(j$) {
+  function Env(options) {
     options = options || {};
     var self = this;
-    var global = options.global || jasmine.getGlobal();
+    var global = options.global || j$.getGlobal();
 
     var catchExceptions = true;
 
-    this.clock = new jasmine.Clock(global, new jasmine.DelayedFunctionScheduler());
+    this.clock = new j$.Clock(global, new j$.DelayedFunctionScheduler());
 
-    this.jasmine = jasmine;
     this.spies_ = [];
     this.currentSpec = null;
 
-    this.reporter = new jasmine.ReportDispatcher([
+    this.reporter = new j$.ReportDispatcher([
       "jasmineStarted",
       "jasmineDone",
       "suiteStarted",
@@ -30,18 +29,24 @@
     this.nextSuiteId_ = 0;
     this.equalityTesters_ = [];
 
-    // wrap matchers
-    this.matchersClass = function() {
-      jasmine.Matchers.apply(this, arguments);
+    var customEqualityTesters = [];
+    this.addCustomEqualityTester = function(tester) {
+      customEqualityTesters.push(tester);
     };
-    jasmine.util.inherit(this.matchersClass, jasmine.Matchers);
 
-    jasmine.Matchers.wrapInto_(jasmine.Matchers.prototype, this.matchersClass);
+    j$.Expectation.addCoreMatchers(j$.matchers);
 
     var expectationFactory = function(actual, spec) {
-      var expect = new (self.matchersClass)(self, actual, spec);
-      expect.not = new (self.matchersClass)(self, actual, spec, true);
-      return expect;
+      return j$.Expectation.Factory({
+        util: j$.matchersUtil,
+        customEqualityTesters: customEqualityTesters,
+        actual: actual,
+        addExpectationResult: addExpectationResult
+      });
+
+      function addExpectationResult(passed, result) {
+        return spec.addExpectationResult(passed, result);
+      }
     };
 
     var specStarted = function(spec) {
@@ -69,15 +74,15 @@
       };
     };
 
-    var specConstructor = jasmine.Spec;
+    var specConstructor = j$.Spec; // TODO: inline this
 
     var getSpecName = function(spec, currentSuite) {
       return currentSuite.getFullName() + ' ' + spec.description + '.';
     };
 
     // TODO: we may just be able to pass in the fn instead of wrapping here
-    var buildExpectationResult = jasmine.buildExpectationResult,
-      exceptionFormatter = new jasmine.ExceptionFormatter(),
+    var buildExpectationResult = j$.buildExpectationResult,
+      exceptionFormatter = new j$.ExceptionFormatter(),
       expectationResultFactory = function(attrs) {
         attrs.messageFormatter = exceptionFormatter.message;
         attrs.stackFormatter = exceptionFormatter.stack;
@@ -96,7 +101,7 @@
     };
 
     this.catchException = function(e){
-      return jasmine.Spec.isPendingSpecException(e) || catchExceptions;
+      return j$.Spec.isPendingSpecException(e) || catchExceptions;
     };
 
     var maximumSpecCallbackDepth = 100;
@@ -116,7 +121,7 @@
       options.catchException = self.catchException;
       options.encourageGC = options.encourageGarbageCollection || encourageGarbageCollection;
 
-      new jasmine.QueueRunner(options).run(options.fns, 0);
+      new j$.QueueRunner(options).run(options.fns, 0);
     };
 
     var totalSpecsDefined = 0;
@@ -148,6 +153,8 @@
 
       function specResultCallback(result) {
         self.removeAllSpies();
+        j$.Expectation.resetMatchers();
+        customEqualityTesters.length = 0;
         self.clock.uninstall();
         self.currentSpec = null;
         self.reporter.specDone(result);
@@ -158,9 +165,9 @@
       self.reporter.suiteStarted(suite.result);
     };
 
-    var suiteConstructor = jasmine.Suite;
+    var suiteConstructor = j$.Suite;
 
-    this.topSuite = new jasmine.Suite({
+    this.topSuite = new j$.Suite({
       env: this,
       id: this.nextSuiteId(),
       description: 'Jasmine__TopLevel__Suite',
@@ -190,33 +197,26 @@
       });
       this.topSuite.execute(this.reporter.jasmineDone);
     };
+  }
+
+  Env.prototype.addMatchers = function(matchersToAdd) {
+    j$.Expectation.addMatchers(matchersToAdd);
   };
 
-  //TODO: shim Spec addMatchers behavior into Env. Should be rewritten to remove globals, etc.
-  jasmine.Env.prototype.addMatchers = function(matchersPrototype) {
-    var parent = this.matchersClass;
-    var newMatchersClass = function() {
-      parent.apply(this, arguments);
-    };
-    jasmine.util.inherit(newMatchersClass, parent);
-    jasmine.Matchers.wrapInto_(matchersPrototype, newMatchersClass);
-    this.matchersClass = newMatchersClass;
+  Env.prototype.version = function() {
+    return j$.version;
   };
 
-  jasmine.Env.prototype.version = function() {
-    return jasmine.version;
-  };
-
-  jasmine.Env.prototype.expect = function(actual) {
+  Env.prototype.expect = function(actual) {
     return this.currentSpec.expect(actual);
   };
 
-  jasmine.Env.prototype.spyOn = function(obj, methodName) {
-    if (jasmine.util.isUndefined(obj)) {
+  Env.prototype.spyOn = function(obj, methodName) {
+    if (j$.util.isUndefined(obj)) {
       throw "spyOn could not find an object to spy upon for " + methodName + "()";
     }
 
-    if (jasmine.util.isUndefined(obj[methodName])) {
+    if (j$.util.isUndefined(obj[methodName])) {
       throw methodName + '() method does not exist';
     }
 
@@ -225,7 +225,7 @@
       throw new Error(methodName + ' has already been spied upon');
     }
 
-    var spyObj = jasmine.createSpy(methodName);
+    var spyObj = j$.createSpy(methodName);
 
     this.spies_.push(spyObj);
     spyObj.baseObj = obj;
@@ -238,7 +238,7 @@
   };
 
   // TODO: move this to closure
-  jasmine.Env.prototype.removeAllSpies = function() {
+  Env.prototype.removeAllSpies = function() {
     for (var i = 0; i < this.spies_.length; i++) {
       var spy = this.spies_[i];
       spy.baseObj[spy.methodName] = spy.originalValue;
@@ -247,28 +247,28 @@
   };
 
   // TODO: move this to closure
-  jasmine.Env.prototype.versionString = function() {
-    console.log("DEPRECATED == use jasmine.version");
-    return jasmine.version;
+  Env.prototype.versionString = function() {
+    console.log("DEPRECATED == use j$.version");
+    return j$.version;
   };
 
   // TODO: move this to closure
-  jasmine.Env.prototype.nextSpecId = function() {
+  Env.prototype.nextSpecId = function() {
     return this.nextSpecId_++;
   };
 
   // TODO: move this to closure
-  jasmine.Env.prototype.nextSuiteId = function() {
+  Env.prototype.nextSuiteId = function() {
     return this.nextSuiteId_++;
   };
 
   // TODO: move this to closure
-  jasmine.Env.prototype.addReporter = function(reporter) {
+  Env.prototype.addReporter = function(reporter) {
     this.reporter.addReporter(reporter);
   };
 
   // TODO: move this to closure
-  jasmine.Env.prototype.describe = function(description, specDefinitions) {
+  Env.prototype.describe = function(description, specDefinitions) {
     var suite = this.suiteFactory(description, specDefinitions);
 
     var parentSuite = this.currentSuite;
@@ -294,176 +294,45 @@
   };
 
   // TODO: move this to closure
-  jasmine.Env.prototype.xdescribe = function(description, specDefinitions) {
+  Env.prototype.xdescribe = function(description, specDefinitions) {
     var suite = this.describe(description, specDefinitions);
     suite.disable();
     return suite;
   };
 
   // TODO: move this to closure
-  jasmine.Env.prototype.it = function(description, fn) {
+  Env.prototype.it = function(description, fn) {
     var spec = this.specFactory(description, fn, this.currentSuite);
     this.currentSuite.addSpec(spec);
     return spec;
   };
 
   // TODO: move this to closure
-  jasmine.Env.prototype.xit = function(description, fn) {
+  Env.prototype.xit = function(description, fn) {
     var spec = this.it(description, fn);
     spec.pend();
     return spec;
   };
 
   // TODO: move this to closure
-  jasmine.Env.prototype.beforeEach = function(beforeEachFunction) {
+  Env.prototype.beforeEach = function(beforeEachFunction) {
     this.currentSuite.beforeEach(beforeEachFunction);
   };
 
   // TODO: move this to closure
-  jasmine.Env.prototype.afterEach = function(afterEachFunction) {
+  Env.prototype.afterEach = function(afterEachFunction) {
     this.currentSuite.afterEach(afterEachFunction);
   };
 
   // TODO: move this to closure
-  jasmine.Env.prototype.pending = function() {
-    throw new Error(jasmine.Spec.pendingSpecExceptionMessage);
+  Env.prototype.pending = function() {
+    throw new Error(j$.Spec.pendingSpecExceptionMessage);
   };
 
   // TODO: Still needed?
-  jasmine.Env.prototype.currentRunner = function() {
+  Env.prototype.currentRunner = function() {
     return this.topSuite;
   };
 
-  jasmine.Env.prototype.compareRegExps_ = function(a, b, mismatchKeys, mismatchValues) {
-    if (a.source != b.source)
-      mismatchValues.push("expected pattern /" + b.source + "/ is not equal to the pattern /" + a.source + "/");
-
-    if (a.ignoreCase != b.ignoreCase)
-      mismatchValues.push("expected modifier i was" + (b.ignoreCase ? " " : " not ") + "set and does not equal the origin modifier");
-
-    if (a.global != b.global)
-      mismatchValues.push("expected modifier g was" + (b.global ? " " : " not ") + "set and does not equal the origin modifier");
-
-    if (a.multiline != b.multiline)
-      mismatchValues.push("expected modifier m was" + (b.multiline ? " " : " not ") + "set and does not equal the origin modifier");
-
-    if (a.sticky != b.sticky)
-      mismatchValues.push("expected modifier y was" + (b.sticky ? " " : " not ") + "set and does not equal the origin modifier");
-
-    return (mismatchValues.length === 0);
-  };
-
-  jasmine.Env.prototype.compareObjects_ = function(a, b, mismatchKeys, mismatchValues) {
-    if (a.__Jasmine_been_here_before__ === b && b.__Jasmine_been_here_before__ === a) {
-      return true;
-    }
-
-    a.__Jasmine_been_here_before__ = b;
-    b.__Jasmine_been_here_before__ = a;
-
-    var hasKey = function(obj, keyName) {
-      return obj !== null && !jasmine.util.isUndefined(obj[keyName]);
-    };
-
-    for (var property in b) {
-      if (!hasKey(a, property) && hasKey(b, property)) {
-        mismatchKeys.push("expected has key '" + property + "', but missing from actual.");
-      }
-    }
-    for (property in a) {
-      if (!hasKey(b, property) && hasKey(a, property)) {
-        mismatchKeys.push("expected missing key '" + property + "', but present in actual.");
-      }
-    }
-    for (property in b) {
-      if (property == '__Jasmine_been_here_before__') continue;
-      if (!this.equals_(a[property], b[property], mismatchKeys, mismatchValues)) {
-        mismatchValues.push("'" + property + "' was '" + (b[property] ? jasmine.util.htmlEscape(b[property].toString()) : b[property]) + "' in expected, but was '" + (a[property] ? jasmine.util.htmlEscape(a[property].toString()) : a[property]) + "' in actual.");
-      }
-    }
-
-    if (jasmine.isArray_(a) && jasmine.isArray_(b) && a.length != b.length) {
-      mismatchValues.push("arrays were not the same length");
-    }
-
-    delete a.__Jasmine_been_here_before__;
-    delete b.__Jasmine_been_here_before__;
-    return (mismatchKeys.length === 0 && mismatchValues.length === 0);
-  };
-
-  jasmine.Env.prototype.equals_ = function(a, b, mismatchKeys, mismatchValues) {
-    mismatchKeys = mismatchKeys || [];
-    mismatchValues = mismatchValues || [];
-
-    for (var i = 0; i < this.equalityTesters_.length; i++) {
-      var equalityTester = this.equalityTesters_[i];
-      var result = equalityTester(a, b, this, mismatchKeys, mismatchValues);
-      if (!jasmine.util.isUndefined(result)) {
-        return result;
-      }
-    }
-
-    if (a === b) return true;
-
-    if (jasmine.util.isUndefined(a) || a === null || jasmine.util.isUndefined(b) || b === null) {
-      return (jasmine.util.isUndefined(a) && jasmine.util.isUndefined(b));
-    }
-
-    if (jasmine.isDomNode(a) && jasmine.isDomNode(b)) {
-      return a === b;
-    }
-
-    if (a instanceof Date && b instanceof Date) {
-      return a.getTime() == b.getTime();
-    }
-
-    if (a.jasmineMatches) {
-      return a.jasmineMatches(b);
-    }
-
-    if (b.jasmineMatches) {
-      return b.jasmineMatches(a);
-    }
-
-    if (a instanceof jasmine.Matchers.ObjectContaining) {
-      return a.matches(b);
-    }
-
-    if (b instanceof jasmine.Matchers.ObjectContaining) {
-      return b.matches(a);
-    }
-
-    if (jasmine.isString_(a) && jasmine.isString_(b)) {
-      return (a == b);
-    }
-
-    if (jasmine.isNumber_(a) && jasmine.isNumber_(b)) {
-      return (a == b);
-    }
-
-    if (a instanceof RegExp && b instanceof RegExp) {
-      return this.compareRegExps_(a, b, mismatchKeys, mismatchValues);
-    }
-
-    if (typeof a === "object" && typeof b === "object") {
-      return this.compareObjects_(a, b, mismatchKeys, mismatchValues);
-    }
-
-    //Straight check
-    return (a === b);
-  };
-
-  jasmine.Env.prototype.contains_ = function(haystack, needle) {
-    if (jasmine.isArray_(haystack)) {
-      for (var i = 0; i < haystack.length; i++) {
-        if (this.equals_(haystack[i], needle)) return true;
-      }
-      return false;
-    }
-    return haystack.indexOf(needle) >= 0;
-  };
-
-  jasmine.Env.prototype.addEqualityTester = function(equalityTester) {
-    this.equalityTesters_.push(equalityTester);
-  };
-}());
+  return Env;
+};
