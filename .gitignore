@@ -6,8 +6,8 @@
 ~*
 
 # MAC rubbish
-.DS_Store    
-														     
+.DS_Store
+
 # build utility directories
 node_modules
 
@@ -26,3 +26,4 @@ pkg/*
 .sass-cache/*
 src/html/.sass-cache/*
 
+dist/tmp/*
