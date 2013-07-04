@@ -55,7 +55,9 @@ var jasmineInterface = {
   setInterval: env.clock.setInterval,
   clearInterval: env.clock.clearInterval,
 
-  jsApiReporter: new jasmine.JsApiReporter(jasmine)
+  jsApiReporter: new jasmine.JsApiReporter({
+    timer: new jasmine.Timer()
+  })
 };
 
 extend(global, jasmineInterface);
@@ -78,7 +80,8 @@ function executeSpecs(specs, done, isVerbose, showColors) {
   var consoleReporter = new jasmine.ConsoleReporter({
     print: util.print,
     onComplete: done,
-    showColors: showColors
+    showColors: showColors,
+    timer: new jasmine.Timer()
   });
 
   env.addReporter(consoleReporter);
@@ -86,25 +89,25 @@ function executeSpecs(specs, done, isVerbose, showColors) {
 }
 
 function getFiles(dir, matcher) {
-    specs = [];
+  var allFiles = [];
 
   if (fs.statSync(dir).isFile() && dir.match(matcher)) {
-    specs.push(dir);
+    allFiles.push(dir);
   } else {
     var files = fs.readdirSync(dir);
     for (var i = 0, len = files.length; i < len; ++i) {
       var filename = dir + '/' + files[i];
       if (fs.statSync(filename).isFile() && filename.match(matcher)) {
-        specs.push(filename);
+        allFiles.push(filename);
       } else if (fs.statSync(filename).isDirectory()) {
-        var subfiles = getSpecFiles(filename);
+        var subfiles = getFiles(filename);
         subfiles.forEach(function(result) {
-          specs.push(result);
+          allFiles.push(result);
         });
       }
     }
   }
-  return specs;
+  return allFiles;
 }
 
 function getSpecFiles(dir) {
@@ -113,7 +116,7 @@ function getSpecFiles(dir) {
 
 var j$require = (function() {
   var exported = {},
-    j$req;
+      j$req;
 
   global.getJasmineRequireObj = getJasmineRequireObj;
 
@@ -124,7 +127,7 @@ var j$require = (function() {
   srcFiles.push(__dirname + "/../src/version.js");
   srcFiles.push(__dirname + "/../src/console/ConsoleReporter.js");
 
-  for (var i=0; i < srcFiles.length; i++) {
+  for (var i = 0; i < srcFiles.length; i++) {
     require(srcFiles[i]);
   }
   extend(j$req, exported);
@@ -141,17 +144,11 @@ var j$require = (function() {
 var j$ = j$require.core(j$require);
 j$require.console(j$require, j$);
 
-//var specs = getSpecFiles(__dirname + '/smoke', new RegExp("test.js$"));
-var consoleSpecs = getSpecFiles(__dirname + "/console"),
-  coreSpecs = getSpecFiles(__dirname + "/core"),
-  specs = [];
-
-specs = specs.concat(consoleSpecs);
-specs = specs.concat(coreSpecs);
-
 // options from command line
 var isVerbose = false;
 var showColors = true;
+var perfSuite = false;
+
 process.argv.forEach(function(arg) {
   switch (arg) {
     case '--color':
@@ -163,8 +160,21 @@ process.argv.forEach(function(arg) {
     case '--verbose':
       isVerbose = true;
       break;
+    case '--perf':
+      perfSuite = true;
+      break;
   }
 });
+
+specs = [];
+
+if (perfSuite) {
+  specs = getFiles(__dirname + '/performance', new RegExp("test.js$"));
+} else {
+  var consoleSpecs = getSpecFiles(__dirname + "/console"),
+      coreSpecs = getSpecFiles(__dirname + "/core"),
+      specs = consoleSpecs.concat(coreSpecs);
+}
 
 executeSpecs(specs, function(passed) {
   if (passed) {

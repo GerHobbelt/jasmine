@@ -1,12 +1,18 @@
 jasmineRequire.HtmlReporter = function() {
+
+  var noopTimer = {
+    start: function(){},
+    elapsed: function(){ return 0; }
+  };
+
   function HtmlReporter(options) {
     var env = options.env || {},
       getContainer = options.getContainer,
-      now = options.now || function() { return new Date().getTime();},
       createElement = options.createElement,
       createTextNode = options.createTextNode,
+      onRaiseExceptionsClick = options.onRaiseExceptionsClick,
+      timer = options.timer || noopTimer,
       results = [],
-      startTime,
       specsExecuted = 0,
       failureCount = 0,
       pendingSpecCount = 0,
@@ -27,13 +33,13 @@ jasmineRequire.HtmlReporter = function() {
       );
       getContainer().appendChild(htmlReporterMain);
 
-      symbols = find(".symbol-summary")[0];
+      symbols = find(".symbol-summary");
     };
 
     var totalSpecsDefined;
     this.jasmineStarted = function(options) {
       totalSpecsDefined = options.totalSpecsDefined || 0;
-      startTime = now();
+      timer.start();
     };
 
     var summary = createDom("div", {className: "summary"});
@@ -95,12 +101,10 @@ jasmineRequire.HtmlReporter = function() {
     };
 
     this.jasmineDone = function() {
-      var elapsed = now() - startTime;
+      var banner = find(".banner");
+      banner.appendChild(createDom("span", {className: "duration"}, "finished in " + timer.elapsed() / 1000 + "s"));
 
-      var banner = find(".banner")[0];
-      banner.appendChild(createDom("span", {className: "duration"}, "finished in " + elapsed / 1000 + "s"));
-
-      var alert = find(".alert")[0];
+      var alert = find(".alert");
 
       alert.appendChild(createDom("span", { className: "exceptions" },
         createDom("label", { className: "label", 'for': "raise-exceptions" }, "raise exceptions"),
@@ -110,10 +114,10 @@ jasmineRequire.HtmlReporter = function() {
           type: "checkbox"
         })
       ));
-      var checkbox = find("input")[0];
+      var checkbox = find("input");
 
       checkbox.checked = !env.catchingExceptions();
-      checkbox.onclick = options.onRaiseExceptionsClick;
+      checkbox.onclick = onRaiseExceptionsClick;
 
       if (specsExecuted < totalSpecsDefined) {
         var skippedMessage = "Ran " + specsExecuted + " of " + totalSpecsDefined + " specs - run all";
@@ -129,7 +133,7 @@ jasmineRequire.HtmlReporter = function() {
       var statusBarClassName = "bar " + ((failureCount > 0) ? "failed" : "passed");
       alert.appendChild(createDom("span", {className: statusBarClassName}, statusBarMessage));
 
-      var results = find(".results")[0];
+      var results = find(".results");
       results.appendChild(summary);
 
       summaryList(topResults, summary);
@@ -175,16 +179,16 @@ jasmineRequire.HtmlReporter = function() {
             createDom('a', {className: "spec-list-menu", href: "#"}, "Spec List"),
             createDom("span", {}, " | Failures ")));
 
-        find(".failures-menu")[0].onclick = function() {
+        find(".failures-menu").onclick = function() {
           setMenuModeTo('failure-list');
         };
-        find(".spec-list-menu")[0].onclick = function() {
+        find(".spec-list-menu").onclick = function() {
           setMenuModeTo('spec-list');
         };
 
         setMenuModeTo('failure-list');
 
-        var failureNode = find(".failures")[0];
+        var failureNode = find(".failures");
         for (var i = 0; i < failures.length; i++) {
           failureNode.appendChild(failures[i]);
         }
@@ -194,12 +198,7 @@ jasmineRequire.HtmlReporter = function() {
     return this;
 
     function find(selector) {
-      if (selector.match(/^\./)) {
-        var className = selector.substring(1);
-        return getContainer().getElementsByClassName(className);
-      } else {
-        return getContainer().getElementsByTagName(selector);
-      }
+      return getContainer().querySelector(selector);
     }
 
     function createDom(type, attrs, childrenVarArgs) {

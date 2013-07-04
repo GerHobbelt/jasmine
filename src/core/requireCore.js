@@ -20,15 +20,18 @@ getJasmineRequireObj().core = function(jRequire) {
   j$.Expectation = jRequire.Expectation();
   j$.buildExpectationResult = jRequire.buildExpectationResult();
   j$.JsApiReporter = jRequire.JsApiReporter();
-  j$.matchers = jRequire.matchers(j$);
   j$.matchersUtil = jRequire.matchersUtil(j$);
   j$.ObjectContaining = jRequire.ObjectContaining(j$);
   j$.StringPrettyPrinter = jRequire.StringPrettyPrinter(j$);
   j$.QueueRunner = jRequire.QueueRunner();
   j$.ReportDispatcher = jRequire.ReportDispatcher();
   j$.Spec = jRequire.Spec();
+  j$.Spy = jRequire.Spy(j$);
   j$.Suite = jRequire.Suite();
+  j$.Timer = jRequire.Timer();
   j$.version = jRequire.version();
+
+  j$.matchers = jRequire.requireMatchers(jRequire, j$);
 
   return j$;
 };

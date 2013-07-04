@@ -6,6 +6,7 @@ getJasmineRequireObj().Env = function(j$) {
 
     var catchExceptions = true;
 
+    var realSetTimeout = j$.getGlobal().setTimeout;
     this.clock = new j$.Clock(global, new j$.DelayedFunctionScheduler());
 
     this.spies_ = [];
@@ -107,11 +108,11 @@ getJasmineRequireObj().Env = function(j$) {
     var maximumSpecCallbackDepth = 100;
     var currentSpecCallbackDepth = 0;
 
-    function encourageGarbageCollection(fn) {
+    function clearStack(fn) {
       currentSpecCallbackDepth++;
-      if (currentSpecCallbackDepth > maximumSpecCallbackDepth) {
+      if (currentSpecCallbackDepth >= maximumSpecCallbackDepth) {
         currentSpecCallbackDepth = 0;
-        global.setTimeout(fn, 0);
+        realSetTimeout(fn, 0);
       } else {
         fn();
       }
@@ -119,7 +120,7 @@ getJasmineRequireObj().Env = function(j$) {
 
     var queueRunnerFactory = function(options) {
       options.catchException = self.catchException;
-      options.encourageGC = options.encourageGarbageCollection || encourageGarbageCollection;
+      options.clearStack = options.clearStack || clearStack;
 
       new j$.QueueRunner(options).run(options.fns, 0);
     };
@@ -195,7 +196,7 @@ getJasmineRequireObj().Env = function(j$) {
       this.reporter.jasmineStarted({
         totalSpecsDefined: totalSpecsDefined
       });
-      this.topSuite.execute(this.reporter.jasmineDone);
+      this.topSuite.execute(self.reporter.jasmineDone);
     };
   }
 
@@ -326,7 +327,7 @@ getJasmineRequireObj().Env = function(j$) {
 
   // TODO: move this to closure
   Env.prototype.pending = function() {
-    throw new Error(j$.Spec.pendingSpecExceptionMessage);
+    throw j$.Spec.pendingSpecExceptionMessage;
   };
 
   // TODO: Still needed?

@@ -28,6 +28,18 @@ describe("ConsoleReporter", function() {
     expect(out.getOutput()).toEqual("Started\n");
   });
 
+  it("starts the provided timer when jasmine starts", function() {
+    var timerSpy = jasmine.createSpyObj('timer', ['start']),
+        reporter = new j$.ConsoleReporter({
+          print: out.print,
+          timer: timerSpy
+        });
+
+    reporter.jasmineStarted();
+
+    expect(timerSpy.start).toHaveBeenCalled();
+  });
+
   it("reports a passing spec as a dot", function() {
     var reporter = new j$.ConsoleReporter({
       print: out.print
@@ -69,17 +81,16 @@ describe("ConsoleReporter", function() {
   });
 
   it("reports a summary when done (singluar spec and time)", function() {
-    var fakeNow = jasmine.createSpy('fake Date.now'),
-      reporter = new j$.ConsoleReporter({
-        print: out.print,
-        now: fakeNow
-      });
-
-    fakeNow.andReturn(500);
+    var timerSpy = jasmine.createSpyObj('timer', ['start', 'elapsed']),
+        reporter = new j$.ConsoleReporter({
+          print: out.print,
+          timer: timerSpy
+        });
 
     reporter.jasmineStarted();
     reporter.specDone({status: "passed"});
-    fakeNow.andReturn(1500);
+
+    timerSpy.elapsed.andReturn(1000);
 
     out.clear();
     reporter.jasmineDone();
@@ -90,13 +101,12 @@ describe("ConsoleReporter", function() {
   });
 
   it("reports a summary when done (pluralized specs and seconds)", function() {
-    var fakeNow = jasmine.createSpy('fake Date.now'),
-      reporter = new j$.ConsoleReporter({
-        print: out.print,
-        now: fakeNow
-      });
+    var timerSpy = jasmine.createSpyObj('timer', ['start', 'elapsed']),
+        reporter = new j$.ConsoleReporter({
+          print: out.print,
+          timer: timerSpy
+        });
 
-    fakeNow.andReturn(500);
     reporter.jasmineStarted();
     reporter.specDone({status: "passed"});
     reporter.specDone({status: "pending"});
@@ -117,7 +127,8 @@ describe("ConsoleReporter", function() {
 
     out.clear();
 
-    fakeNow.andReturn(600);
+    timerSpy.elapsed.andReturn(100);
+
     reporter.jasmineDone();
 
     expect(out.getOutput()).toMatch(/3 specs, 1 failure, 1 pending spec/);
@@ -148,7 +159,7 @@ describe("ConsoleReporter", function() {
 
     out.clear();
 
-    reporter.jasmineDone();
+    reporter.jasmineDone({});
 
     expect(out.getOutput()).toMatch(/foo bar baz/);
   });
@@ -160,7 +171,7 @@ describe("ConsoleReporter", function() {
         onComplete: onComplete
       });
 
-    reporter.jasmineDone();
+    reporter.jasmineDone({});
 
     expect(onComplete).toHaveBeenCalled();
   });

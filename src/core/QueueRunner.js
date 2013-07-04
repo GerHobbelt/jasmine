@@ -3,7 +3,7 @@ getJasmineRequireObj().QueueRunner = function() {
   function QueueRunner(attrs) {
     this.fns = attrs.fns || [];
     this.onComplete = attrs.onComplete || function() {};
-    this.encourageGC = attrs.encourageGC || function(fn) {fn();};
+    this.clearStack = attrs.clearStack || function(fn) {fn();};
     this.onException = attrs.onException || function() {};
     this.catchException = attrs.catchException || function() { return true; };
   }
@@ -12,19 +12,30 @@ getJasmineRequireObj().QueueRunner = function() {
     this.run(this.fns, 0);
   };
 
-  QueueRunner.prototype.run = function(fns, index) {
-    if (index >= fns.length) {
-      this.encourageGC(this.onComplete);
-      return;
+  QueueRunner.prototype.run = function(fns, recursiveIndex) {
+    var length = fns.length,
+        self = this,
+        iterativeIndex;
+
+    for(iterativeIndex = recursiveIndex; iterativeIndex < length; iterativeIndex++) {
+      var fn = fns[iterativeIndex];
+      if (fn.length > 0) {
+        attempt(function() {
+          fn.call(self, function() { self.run(fns, iterativeIndex + 1); });
+        });
+        return;
+      } else {
+        attempt(function() { fn.call(self); });
+      }
     }
 
-    var fn = fns[index];
-    var self = this;
-    if (fn.length > 0) {
-      attempt(function() { fn.call(self, function() { self.run(fns, index + 1); }); });
-    } else {
-      attempt(function() { fn.call(self); });
-      self.run(fns, index + 1);
+    var runnerDone = iterativeIndex >= length,
+        hasBeenAsyncSpec = recursiveIndex > 0;
+
+    if (runnerDone && hasBeenAsyncSpec) {
+      this.clearStack(this.onComplete);
+    } else if(runnerDone) {
+      this.onComplete();
     }
 
     function attempt(fn) {

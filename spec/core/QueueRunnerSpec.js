@@ -115,18 +115,19 @@ describe("QueueRunner", function() {
     expect(completeCallback).toHaveBeenCalled();
   });
 
-  it("calls a provided garbage collection function with the complete callback when done", function() {
-    var fn = jasmine.createSpy('fn'),
-      completeCallback = jasmine.createSpy('completeCallback'),
-      encourageGC = jasmine.createSpy('encourageGC'),
-      queueRunner = new j$.QueueRunner({
-        fns: [fn],
-        encourageGC: encourageGC,
-        onComplete: completeCallback
-      });
+  it("with an async spec, calls a provided stack clearing function when done", function() {
+    var asyncFn = function(done) { done() },
+        afterFn = jasmine.createSpy('afterFn'),
+        completeCallback = jasmine.createSpy('completeCallback'),
+        clearStack = jasmine.createSpy('clearStack'),
+        queueRunner = new j$.QueueRunner({
+          fns: [asyncFn, afterFn],
+          clearStack: clearStack,
+          onComplete: completeCallback
+        });
 
     queueRunner.execute();
-
-    expect(encourageGC).toHaveBeenCalledWith(completeCallback);
+    expect(afterFn).toHaveBeenCalled();
+    expect(clearStack).toHaveBeenCalledWith(completeCallback);
   });
 });
