@@ -1,4 +1,4 @@
-jasmineRequire.HtmlReporter = function() {
+jasmineRequire.HtmlReporter = function(j$) {
 
   var noopTimer = {
     start: function(){},
@@ -10,7 +10,7 @@ jasmineRequire.HtmlReporter = function() {
       getContainer = options.getContainer,
       createElement = options.createElement,
       createTextNode = options.createTextNode,
-      onRaiseExceptionsClick = options.onRaiseExceptionsClick,
+      onRaiseExceptionsClick = options.onRaiseExceptionsClick || function() {},
       timer = options.timer || noopTimer,
       results = [],
       specsExecuted = 0,
@@ -23,7 +23,7 @@ jasmineRequire.HtmlReporter = function() {
       htmlReporterMain = createDom("div", {className: "html-reporter"},
         createDom("div", {className: "banner"},
           createDom("span", {className: "title"}, "Jasmine"),
-          createDom("span", {className: "version"}, jasmine.version)
+          createDom("span", {className: "version"}, j$.version)
         ),
         createDom("ul", {className: "symbol-summary"}),
         createDom("div", {className: "alert"}),
@@ -44,7 +44,7 @@ jasmineRequire.HtmlReporter = function() {
 
     var summary = createDom("div", {className: "summary"});
 
-    var topResults = new jasmine.ResultsNode({}, "", null),
+    var topResults = new j$.ResultsNode({}, "", null),
       currentParent = topResults;
 
     this.suiteStarted = function(result) {
@@ -81,7 +81,9 @@ jasmineRequire.HtmlReporter = function() {
 
         var failure =
           createDom("div", {className: "spec-detail failed"},
-            createDom("a", {className: "description", title: result.fullName, href: specHref(result)}, result.fullName),
+            createDom("div", {className: "description"},
+              createDom("a", {title: result.fullName, href: specHref(result)}, result.fullName)
+            ),
             createDom("div", {className: "messages"})
           );
         var messages = failure.childNodes[1];

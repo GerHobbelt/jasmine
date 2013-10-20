@@ -8,11 +8,12 @@ function getJasmineRequireObj() {
 }
 
 getJasmineRequireObj().core = function(jRequire) {
-  j$ = {};
+  var j$ = {};
 
   jRequire.base(j$);
   j$.util = jRequire.util();
   j$.Any = jRequire.Any();
+  j$.CallTracker = jRequire.CallTracker();
   j$.Clock = jRequire.Clock();
   j$.DelayedFunctionScheduler = jRequire.DelayedFunctionScheduler();
   j$.Env = jRequire.Env(j$);
@@ -22,11 +23,11 @@ getJasmineRequireObj().core = function(jRequire) {
   j$.JsApiReporter = jRequire.JsApiReporter();
   j$.matchersUtil = jRequire.matchersUtil(j$);
   j$.ObjectContaining = jRequire.ObjectContaining(j$);
-  j$.StringPrettyPrinter = jRequire.StringPrettyPrinter(j$);
+  j$.pp = jRequire.pp(j$);
   j$.QueueRunner = jRequire.QueueRunner();
   j$.ReportDispatcher = jRequire.ReportDispatcher();
-  j$.Spec = jRequire.Spec();
-  j$.Spy = jRequire.Spy(j$);
+  j$.Spec = jRequire.Spec(j$);
+  j$.SpyStrategy = jRequire.SpyStrategy();
   j$.Suite = jRequire.Suite();
   j$.Timer = jRequire.Timer();
   j$.version = jRequire.version();

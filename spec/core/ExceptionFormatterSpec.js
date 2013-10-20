@@ -40,9 +40,12 @@ describe("ExceptionFormatter", function() {
   });
 
   describe("#stack", function() {
-    it("formats stack traces from Webkit, Firefox or node.js", function() {
+    it("formats stack traces from Webkit, Firefox, node.js or IE10+", function() {
+      if (jasmine.getEnv().ieVersion < 10 || jasmine.getEnv().safariVersion < 6) { return; }
+
       var error;
-      try { throw new Error("an error") } catch(e) { error = e; };
+      try { throw new Error("an error") } catch(e) { error = e; }
+
       expect(new j$.ExceptionFormatter().stack(error)).toMatch(/ExceptionFormatterSpec\.js.*\d+/)
     });
 

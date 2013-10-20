@@ -1,4 +1,4 @@
-getJasmineRequireObj().Spec = function() {
+getJasmineRequireObj().Spec = function(j$) {
   function Spec(attrs) {
     this.encounteredExpectations = false;
     this.expectationFactory = attrs.expectationFactory;
@@ -15,6 +15,8 @@ getJasmineRequireObj().Spec = function() {
     this.expectationResultFactory = attrs.expectationResultFactory || function() { };
     this.queueRunner = attrs.queueRunner || function() {};
     this.catchingExceptions = attrs.catchingExceptions || function() { return true; };
+
+    this.timer = attrs.timer || {setTimeout: setTimeout, clearTimeout: clearTimeout};
 
     if (!this.fn) {
       this.pend();
@@ -51,13 +53,34 @@ getJasmineRequireObj().Spec = function() {
       return;
     }
 
+    function timeoutable(fn) {
+      return function(done) {
+        var timeout = Function.prototype.apply.apply(self.timer.setTimeout, [j$.getGlobal(), [function() {
+          onException(new Error('timeout'));
+          done();
+        }, j$.DEFAULT_TIMEOUT_INTERVAL]]);
+
+        var callDone = function() {
+          Function.prototype.apply.apply(self.timer.clearTimeout, [j$.getGlobal(), [timeout]]);
+          done();
+        };
+
+        fn.call(this, callDone); //TODO: do we care about more than 1 arg?
+      };
+    }
+
     var befores = this.beforeFns() || [],
-      afters = this.afterFns() || [];
-    var allFns = befores.concat(this.fn).concat(afters);
+        afters = this.afterFns() || [],
+        thisOne = (this.fn.length) ? timeoutable(this.fn) : this.fn;
+    var allFns = befores.concat(thisOne).concat(afters);
 
     this.queueRunner({
       fns: allFns,
-      onException: function(e) {
+      onException: onException,
+      onComplete: complete
+    });
+
+    function onException(e) {
         if (Spec.isPendingSpecException(e)) {
           self.pend();
           return;
@@ -70,9 +93,7 @@ getJasmineRequireObj().Spec = function() {
           actual: "",
           error: e
         });
-      },
-      onComplete: complete
-    });
+    }
 
     function complete() {
       self.result.status = self.status();

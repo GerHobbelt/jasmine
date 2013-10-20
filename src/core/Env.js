@@ -1,15 +1,20 @@
 getJasmineRequireObj().Env = function(j$) {
   function Env(options) {
     options = options || {};
+
     var self = this;
     var global = options.global || j$.getGlobal();
 
     var catchExceptions = true;
 
     var realSetTimeout = j$.getGlobal().setTimeout;
+    var realClearTimeout = j$.getGlobal().clearTimeout;
     this.clock = new j$.Clock(global, new j$.DelayedFunctionScheduler());
 
-    this.spies_ = [];
+    var runnableLookupTable = {};
+
+    var spies = [];
+
     this.currentSpec = null;
 
     this.reporter = new j$.ReportDispatcher([
@@ -75,21 +80,19 @@ getJasmineRequireObj().Env = function(j$) {
       };
     };
 
-    var specConstructor = j$.Spec; // TODO: inline this
-
     var getSpecName = function(spec, currentSuite) {
-      return currentSuite.getFullName() + ' ' + spec.description + '.';
+      return currentSuite.getFullName() + ' ' + spec.description;
     };
 
     // TODO: we may just be able to pass in the fn instead of wrapping here
     var buildExpectationResult = j$.buildExpectationResult,
-      exceptionFormatter = new j$.ExceptionFormatter(),
-      expectationResultFactory = function(attrs) {
-        attrs.messageFormatter = exceptionFormatter.message;
-        attrs.stackFormatter = exceptionFormatter.stack;
+        exceptionFormatter = new j$.ExceptionFormatter(),
+        expectationResultFactory = function(attrs) {
+          attrs.messageFormatter = exceptionFormatter.message;
+          attrs.stackFormatter = exceptionFormatter.stack;
 
-        return buildExpectationResult(attrs);
-      };
+          return buildExpectationResult(attrs);
+        };
 
     // TODO: fix this naming, and here's where the value comes in
     this.catchExceptions = function(value) {
@@ -101,11 +104,11 @@ getJasmineRequireObj().Env = function(j$) {
       return catchExceptions;
     };
 
-    this.catchException = function(e){
+    this.catchException = function(e) {
       return j$.Spec.isPendingSpecException(e) || catchExceptions;
     };
 
-    var maximumSpecCallbackDepth = 100;
+    var maximumSpecCallbackDepth = 20;
     var currentSpecCallbackDepth = 0;
 
     function clearStack(fn) {
@@ -122,14 +125,14 @@ getJasmineRequireObj().Env = function(j$) {
       options.catchException = self.catchException;
       options.clearStack = options.clearStack || clearStack;
 
-      new j$.QueueRunner(options).run(options.fns, 0);
+      new j$.QueueRunner(options).execute();
     };
 
     var totalSpecsDefined = 0;
     this.specFactory = function(description, fn, suite) {
       totalSpecsDefined++;
 
-      var spec = new specConstructor({
+      var spec = new j$.Spec({
         id: self.nextSpecId(),
         beforeFns: beforeFns(suite),
         afterFns: afterFns(suite),
@@ -143,8 +146,11 @@ getJasmineRequireObj().Env = function(j$) {
         description: description,
         expectationResultFactory: expectationResultFactory,
         queueRunner: queueRunnerFactory,
-        fn: fn
+        fn: fn,
+        timer: {setTimeout: realSetTimeout, clearTimeout: realClearTimeout}
       });
+
+      runnableLookupTable[spec.id] = spec;
 
       if (!self.specFilter(spec)) {
         spec.disable();
@@ -152,11 +158,18 @@ getJasmineRequireObj().Env = function(j$) {
 
       return spec;
 
+      function removeAllSpies() {
+        for (var i = 0; i < spies.length; i++) {
+          var spyEntry = spies[i];
+          spyEntry.baseObj[spyEntry.methodName] = spyEntry.originalValue;
+        }
+        spies = [];
+      }
+
       function specResultCallback(result) {
-        self.removeAllSpies();
+        removeAllSpies();
         j$.Expectation.resetMatchers();
         customEqualityTesters.length = 0;
-        self.clock.uninstall();
         self.currentSpec = null;
         self.reporter.specDone(result);
       }
@@ -176,10 +189,11 @@ getJasmineRequireObj().Env = function(j$) {
       completeCallback: function() {}, // TODO - hook this up
       resultCallback: function() {} // TODO - hook this up
     });
+    runnableLookupTable[this.topSuite.id] = this.topSuite;
     this.currentSuite = this.topSuite;
 
     this.suiteFactory = function(description) {
-      return new suiteConstructor({
+      var suite = new suiteConstructor({
         env: self,
         id: self.nextSuiteId(),
         description: description,
@@ -190,13 +204,53 @@ getJasmineRequireObj().Env = function(j$) {
           self.reporter.suiteDone(attrs);
         }
       });
+
+      runnableLookupTable[suite.id] = suite;
+      return suite;
     };
 
-    this.execute = function() {
+    this.execute = function(runnablesToRun) {
+      runnablesToRun = runnablesToRun || [this.topSuite.id];
+
+      var allFns = [];
+      for(var i = 0; i < runnablesToRun.length; i++) {
+        var runnable = runnableLookupTable[runnablesToRun[i]];
+        allFns.push((function(runnable) { return function(done) { runnable.execute(done); }; })(runnable));
+      }
+
       this.reporter.jasmineStarted({
         totalSpecsDefined: totalSpecsDefined
       });
-      this.topSuite.execute(self.reporter.jasmineDone);
+
+      queueRunnerFactory({fns: allFns, onComplete: this.reporter.jasmineDone});
+    };
+
+    this.spyOn = function(obj, methodName) {
+      if (j$.util.isUndefined(obj)) {
+        throw new Error("spyOn could not find an object to spy upon for " + methodName + "()");
+      }
+
+      if (j$.util.isUndefined(obj[methodName])) {
+        throw new Error(methodName + '() method does not exist');
+      }
+
+      if (obj[methodName] && j$.isSpy(obj[methodName])) {
+        //TODO?: should this return the current spy? Downside: may cause user confusion about spy state
+        throw new Error(methodName + ' has already been spied upon');
+      }
+
+      var spy = j$.createSpy(methodName, obj[methodName]);
+
+      spies.push({
+        spy: spy,
+        baseObj: obj,
+        methodName: methodName,
+        originalValue: obj[methodName]
+      });
+
+      obj[methodName] = spy;
+
+      return spy;
     };
   }
 
@@ -212,40 +266,6 @@ getJasmineRequireObj().Env = function(j$) {
     return this.currentSpec.expect(actual);
   };
 
-  Env.prototype.spyOn = function(obj, methodName) {
-    if (j$.util.isUndefined(obj)) {
-      throw "spyOn could not find an object to spy upon for " + methodName + "()";
-    }
-
-    if (j$.util.isUndefined(obj[methodName])) {
-      throw methodName + '() method does not exist';
-    }
-
-    if (obj[methodName] && obj[methodName].isSpy) {
-      //TODO?: should this return the current spy? Downside: may cause user confusion about spy state
-      throw new Error(methodName + ' has already been spied upon');
-    }
-
-    var spyObj = j$.createSpy(methodName);
-
-    this.spies_.push(spyObj);
-    spyObj.baseObj = obj;
-    spyObj.methodName = methodName;
-    spyObj.originalValue = obj[methodName];
-
-    obj[methodName] = spyObj;
-
-    return spyObj;
-  };
-
-  // TODO: move this to closure
-  Env.prototype.removeAllSpies = function() {
-    for (var i = 0; i < this.spies_.length; i++) {
-      var spy = this.spies_[i];
-      spy.baseObj[spy.methodName] = spy.originalValue;
-    }
-    this.spies_ = [];
-  };
 
   // TODO: move this to closure
   Env.prototype.versionString = function() {
@@ -255,12 +275,12 @@ getJasmineRequireObj().Env = function(j$) {
 
   // TODO: move this to closure
   Env.prototype.nextSpecId = function() {
-    return this.nextSpecId_++;
+    return 'spec' + this.nextSpecId_++;
   };
 
   // TODO: move this to closure
   Env.prototype.nextSuiteId = function() {
-    return this.nextSuiteId_++;
+    return 'suite' + this.nextSuiteId_++;
   };
 
   // TODO: move this to closure
@@ -270,7 +290,7 @@ getJasmineRequireObj().Env = function(j$) {
 
   // TODO: move this to closure
   Env.prototype.describe = function(description, specDefinitions) {
-    var suite = this.suiteFactory(description, specDefinitions);
+    var suite = this.suiteFactory(description);
 
     var parentSuite = this.currentSuite;
     parentSuite.addSuite(suite);

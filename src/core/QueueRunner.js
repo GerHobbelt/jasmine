@@ -6,6 +6,7 @@ getJasmineRequireObj().QueueRunner = function() {
     this.clearStack = attrs.clearStack || function(fn) {fn();};
     this.onException = attrs.onException || function() {};
     this.catchException = attrs.catchException || function() { return true; };
+    this.userContext = {};
   }
 
   QueueRunner.prototype.execute = function() {
@@ -20,34 +21,43 @@ getJasmineRequireObj().QueueRunner = function() {
     for(iterativeIndex = recursiveIndex; iterativeIndex < length; iterativeIndex++) {
       var fn = fns[iterativeIndex];
       if (fn.length > 0) {
-        attempt(function() {
-          fn.call(self, function() { self.run(fns, iterativeIndex + 1); });
-        });
-        return;
+        return attemptAsync(fn);
       } else {
-        attempt(function() { fn.call(self); });
+        attemptSync(fn);
       }
     }
 
-    var runnerDone = iterativeIndex >= length,
-        hasBeenAsyncSpec = recursiveIndex > 0;
+    var runnerDone = iterativeIndex >= length;
 
-    if (runnerDone && hasBeenAsyncSpec) {
+    if (runnerDone) {
       this.clearStack(this.onComplete);
-    } else if(runnerDone) {
-      this.onComplete();
     }
 
-    function attempt(fn) {
+    function attemptSync(fn) {
       try {
-        fn();
+        fn.call(self.userContext);
       } catch (e) {
-        self.onException(e);
-        if (!self.catchException(e)) {
-          //TODO: set a var when we catch an exception and
-          //use a finally block to close the loop in a nice way..
-          throw e;
-        }
+        handleException(e);
+      }
+    }
+
+    function attemptAsync(fn) {
+      var next = function () { self.run(fns, iterativeIndex + 1); };
+
+      try {
+        fn.call(self.userContext, next);
+      } catch (e) {
+        handleException(e);
+        next();
+      }
+    }
+
+    function handleException(e) {
+      self.onException(e);
+      if (!self.catchException(e)) {
+        //TODO: set a var when we catch an exception and
+        //use a finally block to close the loop in a nice way..
+        throw e;
       }
     }
   };

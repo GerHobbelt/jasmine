@@ -6,7 +6,9 @@ getJasmineRequireObj().toThrowError = function(j$) {
           thrown,
           errorType,
           message,
-          regexp;
+          regexp,
+          name,
+          constructorName;
 
         if (typeof actual != "function") {
           throw new Error("Actual is not a Function");
@@ -30,47 +32,60 @@ getJasmineRequireObj().toThrowError = function(j$) {
         }
 
         if (arguments.length == 1) {
-          return pass("Expected function not to throw an Error, but it threw " + thrown + ".");
+          return pass("Expected function not to throw an Error, but it threw " + fnNameFor(thrown) + ".");
+        }
+
+        if (errorType) {
+          name = fnNameFor(errorType);
+          constructorName = fnNameFor(thrown.constructor);
         }
 
         if (errorType && message) {
           if (thrown.constructor == errorType && util.equals(thrown.message, message)) {
-            return pass("Expected function not to throw Error with message \"" + message + "\".");
+            return pass("Expected function not to throw " + name + " with message \"" + message + "\".");
           } else {
-            return fail("Expected function to throw Error with message \"" + message + "\".");
+            return fail("Expected function to throw " + name + " with message \"" + message +
+                        "\", but it threw " + constructorName + " with message \"" + thrown.message + "\".");
           }
         }
 
         if (errorType && regexp) {
           if (thrown.constructor == errorType && regexp.test(thrown.message)) {
-            return pass("Expected function not to throw Error with message matching " + regexp + ".");
+            return pass("Expected function not to throw " + name + " with message matching " + regexp + ".");
           } else {
-            return fail("Expected function to throw Error with message matching " + regexp + ".");
+            return fail("Expected function to throw " + name + " with message matching " + regexp +
+                        ", but it threw " + constructorName + " with message \"" + thrown.message + "\".");
           }
         }
 
         if (errorType) {
           if (thrown.constructor == errorType) {
-            return pass("Expected function not to throw " + errorType.name + ".");
+            return pass("Expected function not to throw " + name + ".");
           } else {
-            return fail("Expected function to throw " + errorType.name + ".");
+            return fail("Expected function to throw " + name + ", but it threw " + constructorName + ".");
           }
         }
 
         if (message) {
           if (thrown.message == message) {
-            return pass("Expected function not to throw an execption with message " + j$.pp(message) + ".");
+            return pass("Expected function not to throw an exception with message " + j$.pp(message) + ".");
           } else {
-            return fail("Expected function to throw an execption with message " + j$.pp(message) + ".");
+            return fail("Expected function to throw an exception with message " + j$.pp(message) +
+                        ", but it threw an exception with message " + j$.pp(thrown.message) + ".");
           }
         }
 
         if (regexp) {
           if (regexp.test(thrown.message)) {
-            return pass("Expected function not to throw an execption with a message matching " + j$.pp(regexp) + ".");
+            return pass("Expected function not to throw an exception with a message matching " + j$.pp(regexp) + ".");
           } else {
-            return fail("Expected function to throw an execption with a message matching " + j$.pp(regexp) + ".");
+            return fail("Expected function to throw an exception with a message matching " + j$.pp(regexp) +
+                        ", but it threw an exception with message " + j$.pp(thrown.message) + ".");
           }
+        }
+
+        function fnNameFor(func) {
+            return func.name || func.toString().match(/^\s*function\s*(\w*)\s*\(/)[1];
         }
 
         function pass(notMessage) {

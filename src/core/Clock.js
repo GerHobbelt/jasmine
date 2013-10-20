@@ -13,18 +13,19 @@ getJasmineRequireObj().Clock = function() {
         setInterval: setInterval,
         clearInterval: clearInterval
       },
-      timer = realTimingFunctions,
       installed = false;
 
     self.install = function() {
-      installed = true;
+      replace(global, fakeTimingFunctions);
       timer = fakeTimingFunctions;
+      installed = true;
     };
 
     self.uninstall = function() {
       delayedFunctionScheduler.reset();
-      installed = false;
+      replace(global, realTimingFunctions);
       timer = realTimingFunctions;
+      installed = false;
     };
 
     self.setTimeout = function(fn, delay, params) {
@@ -34,7 +35,7 @@ getJasmineRequireObj().Clock = function() {
         }
         return timer.setTimeout(fn, delay);
       }
-      return timer.setTimeout.apply(global, arguments);
+      return Function.prototype.apply.apply(timer.setTimeout, [global, arguments]);
     };
 
     self.setInterval = function(fn, delay, params) {
@@ -44,22 +45,22 @@ getJasmineRequireObj().Clock = function() {
         }
         return timer.setInterval(fn, delay);
       }
-      return timer.setInterval.apply(global, arguments);
+      return Function.prototype.apply.apply(timer.setInterval, [global, arguments]);
     };
 
     self.clearTimeout = function(id) {
-      return timer.clearTimeout.call(global, id);
+      return Function.prototype.call.apply(timer.clearTimeout, [global, id]);
     };
 
     self.clearInterval = function(id) {
-      return timer.clearInterval.call(global, id);
+      return Function.prototype.call.apply(timer.clearInterval, [global, id]);
     };
 
     self.tick = function(millis) {
       if (installed) {
         delayedFunctionScheduler.tick(millis);
       } else {
-        throw new Error("Mock clock is not installed, use jasmine.Clock.useMock()");
+        throw new Error("Mock clock is not installed, use jasmine.getEnv().clock.install()");
       }
     };
 
@@ -69,7 +70,13 @@ getJasmineRequireObj().Clock = function() {
       //if these methods are polyfilled, apply will be present
       //TODO: it may be difficult to load the polyfill before jasmine loads
       //(env should be new-ed inside of onload)
-      return !(global.setTimeout || global.setInterval).apply;
+      return !(realTimingFunctions.setTimeout || realTimingFunctions.setInterval).apply;
+    }
+
+    function replace(dest, source) {
+      for (var prop in source) {
+        dest[prop] = source[prop];
+      }
     }
 
     function setTimeout(fn, delay) {

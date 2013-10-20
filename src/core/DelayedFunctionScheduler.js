@@ -7,17 +7,26 @@ getJasmineRequireObj().DelayedFunctionScheduler = function() {
 
     self.tick = function(millis) {
       millis = millis || 0;
-      runFunctionsWithinRange(currentTime, currentTime + millis);
       currentTime = currentTime + millis;
+      runFunctionsWithinRange(currentTime - millis, currentTime);
     };
 
     self.scheduleFunction = function(funcToCall, millis, params, recurring, timeoutKey, runAtMillis) {
+      var f;
+      if (typeof(funcToCall) === 'string') {
+        /* jshint evil: true */
+        f = function() { return eval(funcToCall); };
+        /* jshint evil: false */
+      } else {
+        f = funcToCall;
+      }
+
       millis = millis || 0;
       timeoutKey = timeoutKey || ++delayedFnCount;
       runAtMillis = runAtMillis || (currentTime + millis);
       scheduledFunctions[timeoutKey] = {
         runAtMillis: runAtMillis,
-        funcToCall: funcToCall,
+        funcToCall: f,
         recurring: recurring,
         params: params,
         timeoutKey: timeoutKey,
@@ -99,7 +108,7 @@ getJasmineRequireObj().DelayedFunctionScheduler = function() {
 
       for (var i = 0; i < funcsToRun.length; ++i) {
         var funcToRun = funcsToRun[i];
-        funcToRun.funcToCall.apply(null, funcToRun.params);
+        funcToRun.funcToCall.apply(null, funcToRun.params || []);
       }
     }
   }

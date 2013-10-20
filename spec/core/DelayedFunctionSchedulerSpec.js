@@ -12,6 +12,17 @@ describe("DelayedFunctionScheduler", function() {
     expect(fn).toHaveBeenCalled();
   });
 
+  it("schedules a string for later execution", function() {
+    var scheduler = new j$.DelayedFunctionScheduler(),
+        strfn = "horrible = true;";
+
+    scheduler.scheduleFunction(strfn, 0);
+
+    scheduler.tick(0);
+
+    expect(horrible).toEqual(true);
+  });
+
   it("#tick defaults to 0", function() {
     var scheduler = new j$.DelayedFunctionScheduler(),
       fn = jasmine.createSpy('fn');
@@ -61,15 +72,15 @@ describe("DelayedFunctionScheduler", function() {
 
     scheduler.tick(20);
 
-    expect(fn.callCount).toBe(1);
+    expect(fn.calls.count()).toBe(1);
 
     scheduler.tick(40);
 
-    expect(fn.callCount).toBe(3);
+    expect(fn.calls.count()).toBe(3);
 
     scheduler.tick(21);
 
-    expect(fn.callCount).toBe(4);
+    expect(fn.calls.count()).toBe(4);
 
   });
 
@@ -147,7 +158,7 @@ describe("DelayedFunctionScheduler", function() {
     var scheduler = new j$.DelayedFunctionScheduler(),
       fn = jasmine.createSpy('fn'),
       recurringCallCount = 0,
-      recurring = jasmine.createSpy('recurring').andCallFake(function() {
+      recurring = jasmine.createSpy('recurring').and.callFake(function() {
         recurringCallCount++;
         if (recurringCallCount < 5) {
           expect(fn).not.toHaveBeenCalled();
@@ -160,7 +171,7 @@ describe("DelayedFunctionScheduler", function() {
     scheduler.tick(60);
 
     expect(recurring).toHaveBeenCalled();
-    expect(recurring.callCount).toBe(6);
+    expect(recurring.calls.count()).toBe(6);
     expect(fn).toHaveBeenCalled();
   });
 
