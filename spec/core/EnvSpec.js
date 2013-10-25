@@ -3,29 +3,6 @@ describe("Env", function() {
   var env;
   beforeEach(function() {
     env = new j$.Env();
-    env.updateInterval = 0;
-  });
-
-  describe('ids', function() {
-    it('nextSpecId should return consecutive integers, starting at 0', function() {
-      expect(env.nextSpecId()).toEqual('spec0');
-      expect(env.nextSpecId()).toEqual('spec1');
-      expect(env.nextSpecId()).toEqual('spec2');
-    });
-  });
-
-  describe("reporting", function() {
-    var fakeReporter;
-
-    beforeEach(function() {
-      fakeReporter = jasmine.createSpyObj("fakeReporter", ["jasmineStarted"]);
-    });
-
-    it("should allow reporters to be registered", function() {
-      env.addReporter(fakeReporter);
-      env.reporter.jasmineStarted();
-      expect(fakeReporter.jasmineStarted).toHaveBeenCalled();
-    });
   });
 
   it('removes all spies when env is executed', function(done) {
@@ -104,21 +81,6 @@ describe("Env", function() {
       subject.spiedFunc('bar');
       expect(subject.spiedFunc.calls.count()).toEqual(2);
       expect(subject.spiedFunc.calls.mostRecent().args).toEqual(['bar']);
-    });
-  });
-
-  describe("#catchException", function() {
-    it("returns true if the exception is a pending spec exception", function() {
-      env.catchExceptions(false);
-
-      expect(env.catchException(new Error(j$.Spec.pendingSpecExceptionMessage))).toBe(true);
-    });
-
-    it("returns false if the exception is not a pending spec exception and not catching exceptions", function() {
-      env.catchExceptions(false);
-
-      expect(env.catchException(new Error("external error"))).toBe(false);
-      expect(env.catchException(new Error(j$.Spec.pendingSpecExceptionMessage))).toBe(true);
     });
   });
 
@@ -445,7 +407,6 @@ describe("Env integration", function() {
       });
       var suiteResult = reporter.suiteStarted.calls.first().args[0];
       expect(suiteResult.description).toEqual("A Suite");
-      expect(reporter.jasmineDone).toHaveBeenCalled();
 
       done();
     });

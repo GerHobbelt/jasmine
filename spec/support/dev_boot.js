@@ -39,10 +39,6 @@
       return env.pending();
     },
 
-    addMatchers: function(matchers) {
-      return env.addMatchers(matchers);
-    },
-
     spyOn: function(obj, methodName) {
       return env.spyOn(obj, methodName);
     },
@@ -80,7 +76,6 @@
 
   var htmlReporter = new jasmine.HtmlReporter({
     env: env,
-    queryString: queryString,
     onRaiseExceptionsClick: function() { queryString.setParam("catch", !env.catchingExceptions()); },
     getContainer: function() { return document.body; },
     createElement: function() { return document.createElement.apply(document, arguments); },

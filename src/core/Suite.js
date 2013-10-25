@@ -5,7 +5,6 @@ getJasmineRequireObj().Suite = function() {
     this.parentSuite = attrs.parentSuite;
     this.description = attrs.description;
     this.onStart = attrs.onStart || function() {};
-    this.completeCallback = attrs.completeCallback || function() {}; // TODO: this is unused
     this.resultCallback = attrs.resultCallback || function() {};
     this.clearStack = attrs.clearStack || function(fn) {fn();};
 
@@ -15,8 +14,6 @@ getJasmineRequireObj().Suite = function() {
     this.disabled = false;
 
     this.children_ = []; // TODO: rename
-    this.suites = []; // TODO: needed?
-    this.specs = [];  // TODO: needed?
 
     this.result = {
       id: this.id,
@@ -50,13 +47,11 @@ getJasmineRequireObj().Suite = function() {
 
   Suite.prototype.addSpec = function(spec) {
     this.children_.push(spec);
-    this.specs.push(spec);   // TODO: needed?
   };
 
   Suite.prototype.addSuite = function(suite) {
     suite.parentSuite = this;
     this.children_.push(suite);
-    this.suites.push(suite);    // TODO: needed?
   };
 
   Suite.prototype.children = function() {
