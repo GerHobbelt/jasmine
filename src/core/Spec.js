@@ -5,14 +5,13 @@ getJasmineRequireObj().Spec = function(j$) {
     this.id = attrs.id;
     this.description = attrs.description || '';
     this.fn = attrs.fn;
-    this.beforeFns = attrs.beforeFns || function() {};
-    this.afterFns = attrs.afterFns || function() {};
-    this.catchingExceptions = attrs.catchingExceptions;
+    this.beforeFns = attrs.beforeFns || function() { return []; };
+    this.afterFns = attrs.afterFns || function() { return []; };
     this.onStart = attrs.onStart || function() {};
     this.exceptionFormatter = attrs.exceptionFormatter || function() {};
     this.getSpecName = attrs.getSpecName || function() { return ''; };
     this.expectationResultFactory = attrs.expectationResultFactory || function() { };
-    this.queueRunner = attrs.queueRunner || function() {};
+    this.queueRunnerFactory = attrs.queueRunnerFactory || function() {};
     this.catchingExceptions = attrs.catchingExceptions || function() { return true; };
 
     this.timer = attrs.timer || {setTimeout: setTimeout, clearTimeout: clearTimeout};
@@ -41,7 +40,8 @@ getJasmineRequireObj().Spec = function(j$) {
   };
 
   Spec.prototype.execute = function(onComplete) {
-    var self = this;
+    var self = this,
+        timeout;
 
     this.onStart(this);
 
@@ -52,13 +52,13 @@ getJasmineRequireObj().Spec = function(j$) {
 
     function timeoutable(fn) {
       return function(done) {
-        var timeout = Function.prototype.apply.apply(self.timer.setTimeout, [j$.getGlobal(), [function() {
+        timeout = Function.prototype.apply.apply(self.timer.setTimeout, [j$.getGlobal(), [function() {
           onException(new Error('Timeout - Async callback was not invoked within timeout specified by jasmine.DEFAULT_TIMEOUT_INTERVAL.'));
           done();
         }, j$.DEFAULT_TIMEOUT_INTERVAL]]);
 
         var callDone = function() {
-          Function.prototype.apply.apply(self.timer.clearTimeout, [j$.getGlobal(), [timeout]]);
+          clearTimeoutable();
           done();
         };
 
@@ -66,18 +66,26 @@ getJasmineRequireObj().Spec = function(j$) {
       };
     }
 
-    var befores = this.beforeFns() || [],
-      afters = this.afterFns() || [],
-      thisOne = (this.fn.length) ? timeoutable(this.fn) : this.fn;
-    var allFns = befores.concat(thisOne).concat(afters);
+    function clearTimeoutable() {
+      Function.prototype.apply.apply(self.timer.clearTimeout, [j$.getGlobal(), [timeout]]);
+      timeout = void 0;
+    }
 
-    this.queueRunner({
-      fns: allFns,
+    var allFns = this.beforeFns().concat(this.fn).concat(this.afterFns()),
+      allTimeoutableFns = [];
+    for (var i = 0; i < allFns.length; i++) {
+      var fn = allFns[i];
+      allTimeoutableFns.push(fn.length > 0 ? timeoutable(fn) : fn);
+    }
+
+    this.queueRunnerFactory({
+      fns: allTimeoutableFns,
       onException: onException,
       onComplete: complete
     });
 
     function onException(e) {
+      clearTimeoutable();
       if (Spec.isPendingSpecException(e)) {
         self.pend();
         return;
