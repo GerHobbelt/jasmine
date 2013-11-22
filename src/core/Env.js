@@ -150,6 +150,10 @@ getJasmineRequireObj().Env = function(j$) {
     runnableLookupTable[topSuite.id] = topSuite;
     currentSuite = topSuite;
 
+    this.topSuite = function() {
+      return topSuite;
+    };
+
     this.execute = function(runnablesToRun) {
       runnablesToRun = runnablesToRun || [topSuite.id];
 
@@ -223,7 +227,7 @@ getJasmineRequireObj().Env = function(j$) {
       var suite = suiteFactory(description);
 
       var parentSuite = currentSuite;
-      parentSuite.addSuite(suite);
+      parentSuite.addChild(suite);
       currentSuite = suite;
 
       var declarationError = null;
@@ -302,7 +306,7 @@ getJasmineRequireObj().Env = function(j$) {
 
     this.it = function(description, fn) {
       var spec = specFactory(description, fn, currentSuite);
-      currentSuite.addSpec(spec);
+      currentSuite.addChild(spec);
       return spec;
     };
 

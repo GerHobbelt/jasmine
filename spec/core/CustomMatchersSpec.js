@@ -10,8 +10,10 @@ describe("Custom Matchers (Integration)", function() {
     env.it('spec defining a custom matcher', function() {
       env.addMatchers({
         matcherForSpec: function() {
-          return function(actual, expected) {
-            return { pass: false, message: "matcherForSpec: actual: " + actual + "; expected: " + expected };
+          return {
+            compare: function(actual, expected) {
+              return { pass: false, message: "matcherForSpec: actual: " + actual + "; expected: " + expected };
+            }
           }
         }
       });
@@ -38,7 +40,7 @@ describe("Custom Matchers (Integration)", function() {
   it("passes the spec if the custom matcher passes", function(done) {
     env.addMatchers({
       toBeReal: function() {
-        return function() { return { pass: true }; };
+        return { compare: function() { return { pass: true }; } };
       }
     });
 
@@ -54,11 +56,35 @@ describe("Custom Matchers (Integration)", function() {
     env.execute();
   });
 
+  it("uses the negative compare function for a negative comparison, if provided", function(done) {
+    env.addMatchers({
+      toBeReal: function() {
+        return {
+          compare: function() { return { pass: true }; },
+          negativeCompare: function() { return { pass: true }; }
+        };
+      }
+    });
+
+    env.it("spec with custom negative comparison matcher", function() {
+      env.expect(true).not.toBeReal();
+    });
+
+    var specExpectations = function(result) {
+      expect(result.status).toEqual('passed');
+    }
+
+    env.addReporter({ specDone: specExpectations, jasmineDone: done });
+    env.execute();
+  });
+
   it("generates messages with the same rules as built in matchers absent a custom message", function(done) {
     env.addMatchers({
       toBeReal: function() {
-        return function() {
-          return { pass: false };
+        return {
+          compare: function() {
+            return { pass: false };
+          }
         }
       }
     });
@@ -79,7 +105,7 @@ describe("Custom Matchers (Integration)", function() {
     var argumentSpy = jasmine.createSpy("argument spy").and.returnValue({ pass: true });
     env.addMatchers({
       toBeReal: function() {
-        return argumentSpy;
+        return { compare: argumentSpy };
       }
     });
 
@@ -100,7 +126,7 @@ describe("Custom Matchers (Integration)", function() {
   });
 
   it("passes the jasmine utility and current equality matchers to the expectation factory", function(done) {
-    var matcherFactory = function() { return function() { return { pass: true }; }; },
+    var matcherFactory = function() { return { compare: function() { return {pass: true}; }}; },
         argumentSpy = jasmine.createSpy("argument spy").and.returnValue(matcherFactory),
         customEqualityFn = function() { return true; };
 
