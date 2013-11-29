@@ -42,7 +42,9 @@ getJasmineRequireObj().QueueRunner = function() {
     }
 
     function attemptAsync(fn) {
-      var next = function () { self.run(fns, iterativeIndex + 1); };
+      var next = function () {
+        self.run(fns, iterativeIndex + 1);
+      };
 
       try {
         fn.call(self.userContext, next);
