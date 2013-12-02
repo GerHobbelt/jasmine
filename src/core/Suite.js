@@ -6,7 +6,9 @@ getJasmineRequireObj().Suite = function() {
     this.description = attrs.description;
     this.onStart = attrs.onStart || function() {};
     this.resultCallback = attrs.resultCallback || function() {};
-    this.clearStack = attrs.clearStack || function(fn) {fn();};
+    this.clearStack = attrs.clearStack || function(fn) {
+      fn();
+    };
 
     this.beforeFns = [];
     this.afterFns = [];
@@ -59,7 +61,8 @@ getJasmineRequireObj().Suite = function() {
     var allFns = [];
 
     for (var i = 0; i < this.children.length; i++) {
-      allFns.push(wrapChildAsAsync(this.children[i]));
+      // allFns.push(wrapChildAsAsync(this.children[i])); // this locked up Chrome debugger by running up the call stack at the rate of several call frames per single test
+      allFns.push(wrapChildAsSync(this.children[i]));
     }
 
     this.onStart(this);
@@ -78,7 +81,15 @@ getJasmineRequireObj().Suite = function() {
     }
 
     function wrapChildAsAsync(child) {
-      return function(done) { child.execute(done); };
+      return function(done) {
+        child.execute(done);
+      };
+    }
+
+    function wrapChildAsSync(child) {
+      return function() {
+        child.execute();
+      };
     }
   };
 

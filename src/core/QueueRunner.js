@@ -21,7 +21,7 @@ getJasmineRequireObj().QueueRunner = function() {
     for(iterativeIndex = recursiveIndex; iterativeIndex < length; iterativeIndex++) {
       var fn = fns[iterativeIndex];
       if (fn.length > 0) {
-        return attemptAsync(fn);
+        return attemptAsync(fn); // this locked up Chrome debugger by running up the call stack at the rate of several call frames per single test
       } else {
         attemptSync(fn);
       }
