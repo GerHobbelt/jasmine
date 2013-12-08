@@ -8,6 +8,7 @@ getJasmineRequireObj().Expectation = function() {
     this.actual = options.actual;
     this.addExpectationResult = options.addExpectationResult || function(){};
     this.isNot = options.isNot;
+    this.hasBeenUsed = false;
 
     for (var matcherName in matchers) {
       this[matcherName] = matchers[matcherName];
@@ -50,6 +51,8 @@ getJasmineRequireObj().Expectation = function() {
       if (expected.length == 1) {
         expected = expected[0];
       }
+
+      this.hasBeenUsed = true;
 
       // TODO: how many of these params are needed?
       this.addExpectationResult(
