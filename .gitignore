@@ -12,3 +12,10 @@ Gemfile.lock
 pkg/*
 .sass-cache/*
 src/html/.sass-cache/*
+node_modules/
+*.pyc
+*.swp
+build/
+*.egg-info/
+dist/
+.tox
