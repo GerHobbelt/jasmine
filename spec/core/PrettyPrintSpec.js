@@ -11,6 +11,7 @@ describe("j$.pp", function () {
     expect(j$.pp(jasmine.undefined)).toEqual("undefined");
     expect(j$.pp(3)).toEqual("3");
     expect(j$.pp(-3.14)).toEqual("-3.14");
+    expect(j$.pp(-0)).toEqual("-0");
   });
 
   it("should stringify arrays properly", function() {
@@ -120,6 +121,15 @@ describe("j$.pp", function () {
     };
 
     expect(j$.pp(obj)).toEqual("strung");
+  });
+
+  it("should handle objects with null prototype", function() {
+    if (jasmine.getEnv().ieVersion < 9) { return; }
+
+    var obj = Object.create(null);
+    obj.foo = 'bar';
+
+    expect(j$.pp(obj)).toEqual("{ foo : 'bar' }");
   });
 });
 

@@ -1,11 +1,13 @@
 <a name="README">[Jasmine](http://jasmine.github.io)</a> [![Build Status](https://travis-ci.org/pivotal/jasmine.png?branch=master)](https://travis-ci.org/pivotal/jasmine) [![Code Climate](https://codeclimate.com/repos/5269970a13d6374b6c01d632/badges/8bc25526da64e02065f4/gpa.png)](https://codeclimate.com/repos/5269970a13d6374b6c01d632/feed)
 
 =======
+
 **A JavaScript Testing Framework**
 
 Jasmine is a Behavior Driven Development testing framework for JavaScript. It does not rely on browsers, DOM, or any JavaScript framework. Thus it's suited for websites, [Node.js](http://nodejs.org) projects, or anywhere that JavaScript can run.
 
-Documentation & guides live here: [http://jasmine.github.io](http://jasmine.github.io/)
+Documentation & guides live here: [http://jasmine.github.io](http://jasmine.github.io/)  
+For a quick start guide of Jasmine 2.0, see the beginning of [http://jasmine.github.io/2.0/introduction.html](http://jasmine.github.io/2.0/introduction.html)
 
 ## Contributing
 

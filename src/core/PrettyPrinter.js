@@ -11,6 +11,8 @@ getJasmineRequireObj().pp = function(j$) {
         this.emitScalar('undefined');
       } else if (value === null) {
         this.emitScalar('null');
+      } else if (value === 0 && 1/value === -Infinity) {
+        this.emitScalar('-0');
       } else if (value === j$.getGlobal()) {
         this.emitScalar('<global>');
       } else if (value.jasmineToString) {
@@ -47,7 +49,7 @@ getJasmineRequireObj().pp = function(j$) {
 
   PrettyPrinter.prototype.iterateObject = function(obj, fn) {
     for (var property in obj) {
-      if (!obj.hasOwnProperty(property)) { continue; }
+      if (!Object.prototype.hasOwnProperty.call(obj, property)) { continue; }
       if (property == '__Jasmine_been_here_before__') { continue; }
       fn(property, obj.__lookupGetter__ ? (!j$.util.isUndefined(obj.__lookupGetter__(property)) &&
           obj.__lookupGetter__(property) !== null) : false);
