@@ -37,7 +37,7 @@ module.exports = function(grunt) {
   grunt.registerTask("execSpecsInNode",
     "Run Jasmine core specs in Node.js",
     function() {
-      var exitInfo = require("shelljs").exec("jasmine");
+      var exitInfo = require("shelljs").exec("node_modules/.bin/jasmine");
       if (exitInfo.code !== 0) {
         grunt.fail.fatal("Specs Failed", exitInfo.code);
       }
@@ -47,7 +47,7 @@ module.exports = function(grunt) {
   grunt.registerTask("execSpecsInNode:performance",
     "Run Jasmine performance specs in Node.js",
     function() {
-      require("shelljs").exec("JASMINE_JSON=spec/support/jasmine-performance.json jasmine");
+      require("shelljs").exec("node_modules/.bin/jasmine JASMINE_CONFIG_PATH=spec/support/jasmine-performance.json");
     }
   );
 };

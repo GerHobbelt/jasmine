@@ -16,7 +16,7 @@
   }
 
   function getSourceFiles() {
-    var configPath = process.env.JASMINE_CONFIG_PATH;
+    var configPath = process.env.JASMINE_CONFIG_PATH || 'spec/support/jasmine.json';
     var configFile = fs.readFileSync(configPath, 'utf-8');
     var config = JSON.parse(configFile);
     config.src_files.forEach(function(file) {
