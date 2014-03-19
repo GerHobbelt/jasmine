@@ -14,11 +14,11 @@
   ],
   "devDependencies": {
     "grunt": ">=0.4.1",
-    "grunt-cli": ">=0.1.9",
     "grunt-contrib-jshint": ">=0.7.0",
     "grunt-contrib-concat": ">=0.3.0",
     "grunt-contrib-compass": ">=0.6.0",
     "grunt-contrib-compress": ">=0.5.2",
+    "load-grunt-tasks": ">=0.3.0",
     "shelljs": ">=0.1.4"
   }
 }

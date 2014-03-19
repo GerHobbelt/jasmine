@@ -13,8 +13,7 @@ getJasmineRequireObj().Spec = function(j$) {
     this.expectationResultFactory = attrs.expectationResultFactory || function() { };
     this.queueRunnerFactory = attrs.queueRunnerFactory || function() {};
     this.catchingExceptions = attrs.catchingExceptions || function() { return true; };
-
-    this.timer = attrs.timer || {setTimeout: setTimeout, clearTimeout: clearTimeout};
+    this.expectCalled = false;
 
     if (!this.fn) {
       this.pend();
@@ -29,6 +28,7 @@ getJasmineRequireObj().Spec = function(j$) {
   }
 
   Spec.prototype.addExpectationResult = function(passed, data) {
+    this.expectCalled = true;
     if (passed) {
       return;
     }
@@ -40,8 +40,7 @@ getJasmineRequireObj().Spec = function(j$) {
   };
 
   Spec.prototype.execute = function(onComplete) {
-    var self = this,
-        timeout;
+    var self = this;
 
     this.onStart(this);
 
@@ -50,52 +49,26 @@ getJasmineRequireObj().Spec = function(j$) {
       return;
     }
 
-    function timeoutable(fn) {
-      return function(done) {
-        timeout = Function.prototype.apply.apply(self.timer.setTimeout, [j$.getGlobal(), [function() {
-          onException(new Error('Timeout - Async callback was not invoked within timeout specified by jasmine.DEFAULT_TIMEOUT_INTERVAL.'));
-          done();
-        }, j$.DEFAULT_TIMEOUT_INTERVAL]]);
-
-        var callDone = function() {
-          clearTimeoutable();
-          done();
-        };
-
-        fn.call(this, callDone); //TODO: do we care about more than 1 arg?
-      };
-    }
-
-    function clearTimeoutable() {
-      Function.prototype.apply.apply(self.timer.clearTimeout, [j$.getGlobal(), [timeout]]);
-      timeout = void 0;
-    }
-
-    var allFns = this.beforeFns().concat(this.fn).concat(this.afterFns()),
-      allTimeoutableFns = [];
-    for (var i = 0; i < allFns.length; i++) {
-      var fn = allFns[i];
-      allTimeoutableFns.push(fn.length > 0 ? timeoutable(fn) : fn);
-    }
+    var allFns = this.beforeFns().concat(this.fn).concat(this.afterFns());
 
     this.queueRunnerFactory({
-      fns: allTimeoutableFns,
+      fns: allFns,
       onException: onException,
-      onComplete: complete
+      onComplete: complete,
+      enforceTimeout: function() { return true; }
     });
 
     function onException(e) {
-      clearTimeoutable();
       if (Spec.isPendingSpecException(e)) {
         self.pend();
         return;
       }
 
       self.addExpectationResult(false, {
-        matcherName: "",
+        matcherName: '',
         passed: false,
-        expected: "",
-        actual: "",
+        expected: '',
+        actual: '',
         error: e
       });
     }
@@ -127,6 +100,10 @@ getJasmineRequireObj().Spec = function(j$) {
       return 'pending';
     }
 
+    if(!this.expectCalled) {
+      return 'empty';
+    }
+
     if (this.result.failedExpectations.length > 0) {
       return 'failed';
     } else {
@@ -138,7 +115,7 @@ getJasmineRequireObj().Spec = function(j$) {
     return this.getSpecName(this);
   };
 
-  Spec.pendingSpecExceptionMessage = "=> marked Pending";
+  Spec.pendingSpecExceptionMessage = '=> marked Pending';
 
   Spec.isPendingSpecException = function(e) {
     return !!(e && e.toString && e.toString().indexOf(Spec.pendingSpecExceptionMessage) !== -1);
@@ -147,6 +124,6 @@ getJasmineRequireObj().Spec = function(j$) {
   return Spec;
 };
 
-if (typeof window == void 0 && typeof exports == "object") {
+if (typeof window == void 0 && typeof exports == 'object') {
   exports.Spec = jasmineRequire.Spec;
 }

@@ -1,4 +1,6 @@
-<a name="README">[Jasmine](http://jasmine.github.io)</a> [![Build Status](https://travis-ci.org/pivotal/jasmine.png?branch=master)](https://travis-ci.org/pivotal/jasmine) [![Code Climate](https://codeclimate.com/repos/5269970a13d6374b6c01d632/badges/8bc25526da64e02065f4/gpa.png)](https://codeclimate.com/repos/5269970a13d6374b6c01d632/feed)
+<a name="README">[<img src="https://rawgithub.com/pivotal/jasmine/master/images/jasmine-horizontal.svg" width="400px" />](http://jasmine.github.io)</a> 
+
+[![Build Status](https://travis-ci.org/pivotal/jasmine.png?branch=master)](https://travis-ci.org/pivotal/jasmine) [![Code Climate](https://codeclimate.com/github/pivotal/jasmine.png)](https://codeclimate.com/github/pivotal/jasmine)
 
 =======
 
@@ -8,6 +10,8 @@ Jasmine is a Behavior Driven Development testing framework for JavaScript. It do
 
 Documentation & guides live here: [http://jasmine.github.io](http://jasmine.github.io/)  
 For a quick start guide of Jasmine 2.0, see the beginning of [http://jasmine.github.io/2.0/introduction.html](http://jasmine.github.io/2.0/introduction.html)
+
+Upgrading from Jasmine 1.x? Check out the [2.0 release notes](https://github.com/pivotal/jasmine/blob/v2.0.0/release_notes/20.md) for a list of what's new (including breaking interface changes).
 
 ## Contributing
 
@@ -30,4 +34,4 @@ Please read the [contributors' guide](https://github.com/pivotal/jasmine/blob/ma
 
 * [Christian Williams](mailto:antixian666@gmail.com), Square
 
-Copyright (c) 2008-2013 Pivotal Labs. This software is licensed under the MIT License.
+Copyright (c) 2008-2014 Pivotal Labs. This software is licensed under the MIT License.
