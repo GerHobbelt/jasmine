@@ -12,13 +12,16 @@
     "lib/console",
     "lib/jasmine-core"
   ],
+  "main": "./lib/jasmine-core.js",
   "devDependencies": {
     "grunt": ">=0.4.1",
     "grunt-contrib-jshint": ">=0.7.0",
     "grunt-contrib-concat": ">=0.3.0",
     "grunt-contrib-compass": ">=0.6.0",
     "grunt-contrib-compress": ">=0.5.2",
-    "load-grunt-tasks": ">=0.3.0",
-    "shelljs": ">=0.1.4"
+    "shelljs": ">=0.1.4",
+    "glob": "~3.2.9",
+    "jasmine": "~2.1.0-pre",
+    "load-grunt-tasks": "^0.4.0"
   }
 }
