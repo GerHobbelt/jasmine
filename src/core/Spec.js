@@ -13,7 +13,6 @@ getJasmineRequireObj().Spec = function(j$) {
     this.expectationResultFactory = attrs.expectationResultFactory || function() { };
     this.queueRunnerFactory = attrs.queueRunnerFactory || function() {};
     this.catchingExceptions = attrs.catchingExceptions || function() { return true; };
-    this.expectCalled = false;
 
     if (!this.fn) {
       this.pend();
@@ -23,16 +22,18 @@ getJasmineRequireObj().Spec = function(j$) {
       id: this.id,
       description: this.description,
       fullName: this.getFullName(),
-      failedExpectations: []
+      failedExpectations: [],
+      passedExpectations: []
     };
   }
 
   Spec.prototype.addExpectationResult = function(passed, data) {
-    this.expectCalled = true;
+    var expectationResult = this.expectationResultFactory(data);
     if (passed) {
-      return;
+      this.result.passedExpectations.push(expectationResult);
+    } else {
+      this.result.failedExpectations.push(expectationResult);
     }
-    this.result.failedExpectations.push(this.expectationResultFactory(data));
   };
 
   Spec.prototype.expect = function(actual) {
@@ -98,10 +99,6 @@ getJasmineRequireObj().Spec = function(j$) {
 
     if (this.markedPending) {
       return 'pending';
-    }
-
-    if(!this.expectCalled) {
-      return 'empty';
     }
 
     if (this.result.failedExpectations.length > 0) {
