@@ -37,6 +37,7 @@ getJasmineRequireObj().Suite = function() {
 
   Suite.prototype.disable = function() {
     this.disabled = true;
+    this.result.status = 'disabled';
   };
 
   Suite.prototype.beforeEach = function(fn) {
@@ -53,6 +54,9 @@ getJasmineRequireObj().Suite = function() {
 
   Suite.prototype.execute = function(onComplete) {
     var self = this;
+
+    this.onStart(this);
+
     if (this.disabled) {
       complete();
       return;
@@ -64,8 +68,6 @@ getJasmineRequireObj().Suite = function() {
       // allFns.push(wrapChildAsAsync(this.children[i])); // this locked up Chrome debugger by running up the call stack at the rate of several call frames per single test
       allFns.push(wrapChildAsSync(this.children[i]));
     }
-
-    this.onStart(this);
 
     this.queueRunner({
       fns: allFns,
