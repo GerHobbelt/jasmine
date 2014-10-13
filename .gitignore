@@ -1,7 +1,40 @@
+# Editor backup files
+*~
+*.bak
+
+# MSOffice temporary files
+~*
+
+# MAC rubbish
 .DS_Store
-.bundle/
+
+# build utility directories
+node_modules
+
+# Misc
 .idea/
-tmp/
-node_modules/
+.svn/
+site/
+.bundle/
+.pairs
 .rvmrc
-downloads
+.ruby-gemset
+.ruby-version
+*.gem
+.bundle
+tags
+Gemfile.lock
+pkg/*
+.sass-cache/*
+src/html/.sass-cache/*
+node_modules/
+*.pyc
+sauce_connect.log
+*.swp
+build/
+*.egg-info/
+dist/*.tar.gz
+nbproject/
+
+dist/tmp/*
+

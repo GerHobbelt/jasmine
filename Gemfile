@@ -1,4 +1,12 @@
 source 'https://rubygems.org'
+gem "jasmine", :git => 'https://github.com/pivotal/jasmine-gem.git'
+# gem "jasmine", path: "/Users/pivotal/workspace/jasmine-gem"
+unless ENV["TRAVIS"]
+  group :debug do
+    gem 'debugger'
+  end
+end
 
-gem 'rocco', git: 'https://github.com/infews/rocco.git' # to get around a 14+-month-old bug in Rocco
-gem 'tilt'
+gemspec
+
+gem "anchorman"
