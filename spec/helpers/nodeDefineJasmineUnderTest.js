@@ -16,11 +16,9 @@
   }
 
   function getSourceFiles() {
-    var configPath = process.env.JASMINE_CONFIG_PATH || 'spec/support/jasmine.json';
-    var configFile = fs.readFileSync(configPath, 'utf-8');
-    var config = JSON.parse(configFile);
-    config.src_files.forEach(function(file) {
-      var filePath = path.join(__dirname, "../../", config.src_dir, file);
+    var src_files = ['core/**/*.js', 'console/**/*.js', 'version.js'];
+    src_files.forEach(function(file) {
+      var filePath = path.join(__dirname, "../../", 'src/', file);
       glob.sync(filePath).forEach(function(resolvedFile) {
         require(resolvedFile);
       });
