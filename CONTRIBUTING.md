@@ -79,6 +79,25 @@ To install the Node dependencies, you will need Node.js, Npm, and [Grunt](http:/
 
 ...you see that JSHint runs your system is ready.
 
+#### Install Notes
+
+See also https://github.com/jasmine/jasmine/issues/755:
+
+> When running the `bundle` command on Ubuntu (version: 14.04.1 LTS) it crashes and fails to install the `ffi` gem because it 'failed to build native gem extension'.
+>
+> A little google action located this for another project and another Linux distro: https://github.com/wpscanteam/wpscan/issues/92
+>
+> which for Ubuntu translates to this:
+>
+> ``` bash
+> # apt-get install gcc ruby ruby-dev libxml2 libxml2-dev  libxslt1-dev
+> # gem install ffi
+> ```
+>
+> which should now build the required `ffi` gem without throwing any more errors.
+>
+> Then rerun the `bundle` command as described above.
+
 ### How to write new Jasmine code
 
 Or, How to make a successful pull request
