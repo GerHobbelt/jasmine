@@ -179,10 +179,7 @@ getJasmineRequireObj().Env = function(j$) {
       env: this,
       id: getNextSuiteId(),
       description: 'Jasmine__TopLevel__Suite',
-      queueRunner: queueRunnerFactory,
-      resultCallback: function(attrs) {
-        reporter.suiteDone(attrs);
-      }
+      queueRunner: queueRunnerFactory
     });
     runnableLookupTable[topSuite.id] = topSuite;
     defaultResourcesForRunnable(topSuite.id);
