@@ -161,9 +161,24 @@ describe("Env integration", function() {
           })]
         }));
         expect(specDone).toHaveBeenCalledWith(jasmine.objectContaining({
-          description: 'has a message from an Error',
+          description: 'has a message and stack trace from an Error',
           failedExpectations: [jasmine.objectContaining({
-            message: 'Failed: error message'
+            message: 'Failed: error message',
+            stack: {
+              asymmetricMatch: function(other) {
+                if (!other) {
+                  // IE doesn't give us a stacktrace so just ignore it.
+                  return true;
+                }
+                var split = other.split('\n'),
+                    firstLine = split[0];
+                if (firstLine.indexOf('error message') >= 0) {
+                  // Chrome inserts the message and a newline before the first stacktrace line.
+                  firstLine = split[1];
+                }
+                return firstLine.indexOf('EnvSpec') >= 0;
+              }
+            }
           })]
         }));
         done();
@@ -179,7 +194,7 @@ describe("Env integration", function() {
         env.fail('messy message');
       });
 
-      env.it('has a message from an Error', function() {
+      env.it('has a message and stack trace from an Error', function() {
         env.fail(new Error('error message'));
       });
     });
@@ -1115,6 +1130,43 @@ describe("Env integration", function() {
         env.it('is pending');
         env.xit('is pending', function() {
           env.expect(true).toBe(true);
+        });
+      });
+    });
+
+    env.execute();
+  });
+
+  it('should report xdescribes as expected', function(done) {
+    var env = new j$.Env(),
+        reporter = jasmine.createSpyObj('fakeReporter', [
+          "jasmineStarted",
+          "jasmineDone",
+          "suiteStarted",
+          "suiteDone",
+          "specStarted",
+          "specDone"
+        ]);
+
+    reporter.jasmineDone.and.callFake(function() {
+      expect(reporter.jasmineStarted).toHaveBeenCalledWith({
+        totalSpecsDefined: 1
+      });
+
+      expect(reporter.specDone).not.toHaveBeenCalled();
+      expect(reporter.suiteDone.calls.count()).toBe(3);
+
+      done();
+    });
+
+    env.addReporter(reporter);
+
+    env.describe("A Suite", function() {
+      env.describe("nested", function() {
+        env.xdescribe("xd out", function() {
+          env.it("with a spec", function() {
+            env.expect(true).toBe(false);
+          });
         });
       });
     });
