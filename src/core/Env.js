@@ -179,10 +179,7 @@ getJasmineRequireObj().Env = function(j$) {
       env: this,
       id: getNextSuiteId(),
       description: 'Jasmine__TopLevel__Suite',
-      queueRunner: queueRunnerFactory,
-      resultCallback: function(attrs) {
-        reporter.suiteDone(attrs);
-      }
+      queueRunner: queueRunnerFactory
     });
     runnableLookupTable[topSuite.id] = topSuite;
     defaultResourcesForRunnable(topSuite.id);
@@ -243,8 +240,8 @@ getJasmineRequireObj().Env = function(j$) {
         resultCallback: function(attrs) {
           if (!suite.disabled) {
             clearResourcesForRunnable(suite.id);
-            currentlyExecutingSuites.pop();
           }
+          currentlyExecutingSuites.pop();
           reporter.suiteDone(attrs);
         }
       });
@@ -448,7 +445,8 @@ getJasmineRequireObj().Env = function(j$) {
         passed: false,
         expected: '',
         actual: '',
-        message: message
+        message: message,
+        error: error && error.message ? error : null
       });
     };
   }

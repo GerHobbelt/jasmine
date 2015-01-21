@@ -33,7 +33,7 @@ When ready to release - specs are all green and the stories are done:
 
 1. Build the standalone distribution with `grunt buildStandaloneDist`
 1. Make sure you add the new ZIP file to git
- 1. Should we still do this? Given we want to use guthub releases...
+ 1. Should we still do this? Given we want to use github releases...
 
 ### Release the Python egg
 
@@ -61,7 +61,7 @@ Probably only need to do this when releasing a minor version, and not a patch ve
 
 ### Finally
 
-1. Visit the [Releases page for Jasmine](https://github.com/pivotal/jasmine/releases), find the tag just pushed.
+1. Visit the [Releases page for Jasmine](https://github.com/jasmine/jasmine/releases), find the tag just pushed.
  1. Paste in a link to the correct release notes for this release. The link should reference the blob and tag correctly, and the markdown file for the notes.
  1. If it is a pre-release, mark it as such.
  1. Attach the standalone zipfile

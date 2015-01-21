@@ -4,7 +4,7 @@ getJasmineRequireObj().Any = function() {
     this.expectedObject = expectedObject;
   }
 
-  Any.prototype.jasmineMatches = function(other) {
+  Any.prototype.asymmetricMatch = function(other) {
     if (this.expectedObject == String) {
       return typeof other == 'string' || other instanceof String;
     }
@@ -20,7 +20,7 @@ getJasmineRequireObj().Any = function() {
     if (this.expectedObject == Object) {
       return typeof other == 'object';
     }
-    
+
     if (this.expectedObject == Boolean) {
       return typeof other == 'boolean';
     }

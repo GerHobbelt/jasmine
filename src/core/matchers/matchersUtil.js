@@ -11,7 +11,9 @@ getJasmineRequireObj().matchersUtil = function(j$) {
     contains: function(haystack, needle, customTesters) {
       customTesters = customTesters || [];
 
-      if (Object.prototype.toString.apply(haystack) === '[object Array]') {
+      if ((Object.prototype.toString.apply(haystack) === '[object Array]') ||
+        (!!haystack && !haystack.indexOf))
+      {
         for (var i = 0; i < haystack.length; i++) {
           if (eq(haystack[i], needle, [], [], customTesters)) {
             return true;
@@ -19,6 +21,7 @@ getJasmineRequireObj().matchersUtil = function(j$) {
         }
         return false;
       }
+
       return !!haystack && haystack.indexOf(needle) >= 0;
     },
 
@@ -48,36 +51,41 @@ getJasmineRequireObj().matchersUtil = function(j$) {
     }
   };
 
+  function isAsymmetric(obj) {
+    return obj && j$.isA_('Function', obj.asymmetricMatch);
+  }
+
+  function asymmetricMatch(a, b) {
+    var asymmetricA = isAsymmetric(a),
+        asymmetricB = isAsymmetric(b);
+
+    if (asymmetricA && asymmetricB) {
+      return undefined;
+    }
+
+    if (asymmetricA) {
+      return a.asymmetricMatch(b);
+    }
+
+    if (asymmetricB) {
+      return b.asymmetricMatch(a);
+    }
+  }
+
   // Equality function lovingly adapted from isEqual in
   //   [Underscore](http://underscorejs.org)
   function eq(a, b, aStack, bStack, customTesters) {
     var result = true;
 
+    var asymmetricResult = asymmetricMatch(a, b);
+    if (!j$.util.isUndefined(asymmetricResult)) {
+      return asymmetricResult;
+    }
+
     for (var i = 0; i < customTesters.length; i++) {
       var customTesterResult = customTesters[i](a, b);
       if (!j$.util.isUndefined(customTesterResult)) {
         return customTesterResult;
-      }
-    }
-
-    if (a instanceof j$.Any) {
-      result = a.jasmineMatches(b);
-      if (result) {
-        return true;
-      }
-    }
-
-    if (b instanceof j$.Any) {
-      result = b.jasmineMatches(a);
-      if (result) {
-        return true;
-      }
-    }
-
-    if (b instanceof j$.ObjectContaining) {
-      result = b.jasmineMatches(a);
-      if (result) {
-        return true;
       }
     }
 
@@ -116,6 +124,29 @@ getJasmineRequireObj().matchersUtil = function(j$) {
           a.ignoreCase == b.ignoreCase;
     }
     if (typeof a != 'object' || typeof b != 'object') { return false; }
+
+    var aIsDomNode = j$.isDomNode(a);
+    var bIsDomNode = j$.isDomNode(b);
+    if (aIsDomNode && bIsDomNode) {
+      // At first try to use DOM3 method isEqualNode
+      if (a.isEqualNode) {
+        return a.isEqualNode(b);
+      }
+      // IE8 doesn't support isEqualNode, try to use outerHTML && innerText
+      var aIsElement = a instanceof Element;
+      var bIsElement = b instanceof Element;
+      if (aIsElement && bIsElement) {
+        return a.outerHTML == b.outerHTML;
+      }
+      if (aIsElement || bIsElement) {
+        return false;
+      }
+      return a.innerText == b.innerText && a.textContent == b.textContent;
+    }
+    if (aIsDomNode || bIsDomNode) {
+      return false;
+    }
+
     // Assume equality for cyclic structures. The algorithm for detecting cyclic
     // structures is adapted from ES 5.1 section 15.12.3, abstract operation `JO`.
     var length = aStack.length;
@@ -129,17 +160,12 @@ getJasmineRequireObj().matchersUtil = function(j$) {
     bStack.push(b);
     var size = 0;
     // Recursively compare objects and arrays.
-    if (className == '[object Array]') {
-      // Compare array lengths to determine if a deep comparison is necessary.
-      size = a.length;
-      result = size == b.length;
-      if (result) {
-        // Deep compare the contents, ignoring non-numeric properties.
-        while (size--) {
-          if (!(result = eq(a[size], b[size], aStack, bStack, customTesters))) { break; }
-        }
-      }
-    } else {
+    // Compare array lengths to determine if a deep comparison is necessary.
+    if (className == '[object Array]' && a.length !== b.length) {
+      result = false;
+    }
+
+    if (result) {
       // Objects with different constructors are not equivalent, but `Object`s
       // from different frames are.
       var aCtor = a.constructor, bCtor = b.constructor;
@@ -171,7 +197,7 @@ getJasmineRequireObj().matchersUtil = function(j$) {
     return result;
 
     function has(obj, key) {
-      return obj.hasOwnProperty(key);
+      return Object.prototype.hasOwnProperty.call(obj, key);
     }
 
     function isFunction(obj) {

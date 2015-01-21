@@ -38,3 +38,8 @@ nbproject/
 
 dist/tmp/*
 
+
+# analyze_github script cache:
+__forks.info__/
+__forks__.bulk_dump
+
