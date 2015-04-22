@@ -556,6 +556,23 @@ describe("jasmine spec running", function () {
     env.execute();
   });
 
+  xit("should fail specs where jasmine is not used correctly", function () {
+    var specDoneSpy = jasmine.createSpy("TestCompletionSpy")
+    env.addReporter({ "specDone": specDoneSpy });
+
+    env.describe("suite", function () {
+      env.it("contains a test that doesn't finish an expectation", function () {
+        expect(true == true);
+      });
+      env.it("contains a test the does finish an expectation", function () {
+        expect(true).toEqual(true);
+      });
+    }).execute();
+
+    expect(specDoneSpy.calls.all()[0].args[0].status).toEqual("failed");
+    expect(specDoneSpy.calls.all()[1].args[0].status).toEqual("passed");
+  });
+
   // TODO: is this useful? It doesn't catch syntax errors
   xit("should recover gracefully when there are errors in describe functions", function() {
     var specs = [];

@@ -24,6 +24,11 @@ getJasmineRequireObj().JsApiReporter = function() {
       this.finished = true;
       executionTime = timer.elapsed();
       status = 'done';
+      if (options.onJasmineDone) {
+        options.onJasmineDone.call(this, {
+          executionTime: executionTime
+        });
+      }
     };
 
     this.status = function() {

@@ -6,6 +6,7 @@ getJasmineRequireObj().Expectation = function() {
     this.actual = options.actual;
     this.addExpectationResult = options.addExpectationResult || function(){};
     this.isNot = options.isNot;
+    this.hasBeenUsed = false;
 
     var customMatchers = options.customMatchers || {};
     for (var matcherName in customMatchers) {
@@ -54,16 +55,22 @@ getJasmineRequireObj().Expectation = function() {
         expected = expected[0];
       }
 
+      this.hasBeenUsed = true;
+
       // TODO: how many of these params are needed?
+      var attrs = {
+        matcherName: name,
+        passed: result.pass,
+        message: message,
+        actual: this.actual,
+        expected: expected // TODO: this may need to be arrayified/sliced
+      };
+      if (result.error) {
+        attrs.error = result.error;
+      }
       this.addExpectationResult(
         result.pass,
-        {
-          matcherName: name,
-          passed: result.pass,
-          message: message,
-          actual: this.actual,
-          expected: expected // TODO: this may need to be arrayified/sliced
-        }
+        attrs
       );
     };
   };

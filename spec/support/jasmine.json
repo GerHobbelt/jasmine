@@ -5,6 +5,12 @@
     "console/**/*.js",
     "npmPackage/**/*.js"
   ],
+  "src_dir": "src",
+  "src_files": [
+    "core/**/*.js",
+    "console/**/*.js",
+    "version.js"
+  ],
   "helpers": [
     "helpers/nodeDefineJasmineUnderTest.js"
   ]

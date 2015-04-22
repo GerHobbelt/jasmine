@@ -1,6 +1,19 @@
+# Editor backup files
+*~
+*.bak
+
+# MSOffice temporary files
+~*
+
+# MAC rubbish
+.DS_Store
+
+# build utility directories
+node_modules
+
+# Misc
 .idea/
 .svn/
-.DS_Store
 site/
 .bundle/
 .pairs
@@ -22,3 +35,11 @@ build/
 *.egg-info/
 dist/*.tar.gz
 nbproject/
+
+dist/tmp/*
+
+
+# analyze_github script cache:
+__forks.info__/
+__forks__.bulk_dump
+

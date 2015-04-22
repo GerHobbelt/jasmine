@@ -33,6 +33,17 @@ module.exports = function(grunt) {
     ]
   );
 
+  grunt.registerTask('buildDistributionOnWindows',
+    'Builds and lints jasmine.js, jasmine-html.js, jasmine.css',
+    [
+      //'compass',
+      'jshint:beforeConcat',
+      'concat',
+      'jshint:afterConcat',
+      'build:copyVersionToGem'
+    ]
+  );
+
   grunt.registerTask("execSpecsInNode",
     "Run Jasmine core specs in Node.js",
     function() {

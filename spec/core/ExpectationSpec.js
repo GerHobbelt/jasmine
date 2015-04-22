@@ -385,5 +385,32 @@ describe("Expectation", function() {
     });
   });
 
+  it("starts off marked unused", function () {
+    var expectation = new j$.Expectation({
+      actual: "actual value"
+    });
+
+    expect(expectation.hasBeenUsed).toBe(false);
+  });
+
+  it("marks itself as used once a matcher is called", function () {
+    var expectation = new j$.Expectation({
+      actual: "actual value"
+    });
+
+    expectation.toBe("actual value");
+
+    expect(expectation.hasBeenUsed).toBe(true);
+  });
+
+  it("marks itself as used once a matcher is called, even if it fails", function () {
+    var expectation = new j$.Expectation({
+      actual: "actual value"
+    });
+
+    expectation.toBe("incorrect value");
+
+    expect(expectation.hasBeenUsed).toBe(true);
+  });
 });
 
